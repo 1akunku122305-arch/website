@@ -316,12 +316,9 @@ export function ServerBuilder({ formula, whatsapp, tier = "pvnode" }: Props & { 
             <Badge tone="lime">Grade {m.grade}</Badge>
           </div>
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
-            <Slider label="CPU" value={cfg.cpu} onChange={(v) => set("cpu", v)} {...LIMITS.cpu} unit="vCore" hint="Ryzen 9 / EPYC" />
-            <Slider label="RAM" value={cfg.ram} onChange={(v) => set("ram", v)} {...LIMITS.ram} unit="GB" hint="DDR5 ECC" />
-            <Slider label="SSD" value={cfg.ssd} onChange={(v) => set("ssd", v)} {...LIMITS.ssd} unit="GB" hint="SATA enterprise" />
-            <Slider label="NVMe Gen4" value={cfg.nvme} onChange={(v) => set("nvme", v)} {...LIMITS.nvme} unit="GB" hint="Tercepat" />
-            <Slider label="HDD" value={cfg.hdd} onChange={(v) => set("hdd", v)} {...LIMITS.hdd} unit="GB" hint="Arsip & backup" />
-            <Slider label="Bandwidth" value={cfg.bandwidth} onChange={(v) => set("bandwidth", v)} {...LIMITS.bandwidth} unit="TB" hint="Port 10 Gbps" />
+            <Slider label="CPU" value={cfg.cpu} onChange={(v) => set("cpu", v)} {...LIMITS.cpu} unit="Core" hint="Max 16 Core" />
+            <Slider label="RAM" value={cfg.ram} onChange={(v) => set("ram", v)} {...LIMITS.ram} unit="GB" hint="Max 32 GB" />
+            <Slider label="SSD" value={cfg.ssd} onChange={(v) => set("ssd", v)} {...LIMITS.ssd} unit="GB" hint="Max 160 GB" />
           </div>
         </Card>
 

@@ -37,48 +37,32 @@ export const OPERATING_SYSTEMS = [
 // Panel removed as per user request
 
 export const LIMITS = {
-  cpu: { min: 2, max: 32, step: 1 },
-  ram: { min: 4, max: 256, step: 2 },
-  ssd: { min: 20, max: 2000, step: 10 },
-  nvme: { min: 0, max: 4000, step: 10 },
-  hdd: { min: 0, max: 8000, step: 100 },
-  bandwidth: { min: 1, max: 100, step: 1 },
-  ports: { min: 0, max: 20, step: 1 },
+  cpu: { min: 2, max: 16, step: 1 },
+  ram: { min: 4, max: 32, step: 2 },
+  ssd: { min: 20, max: 160, step: 10 },
 };
 
-// Hardware Tiers sesuai prompt
+// Hardware Tiers (pricing simplified as per request)
 export const HARDWARE_TIERS = {
   p vnode: {
     name: "PVNode (Intel Xeon E5-2690 v4)",
     cpuModel: "Intel Xeon E5-2690 v4",
-    basePrice: 45000,
-    perCore: 8500,
-    perGbRam: 3200,
-    perGbSsd: 180,
+    basePrice: 15000,
   },
   vps: {
     name: "VPS (Intel Xeon E5-2690 v4)",
     cpuModel: "Intel Xeon E5-2690 v4",
-    basePrice: 42000,
-    perCore: 7800,
-    perGbRam: 2900,
-    perGbSsd: 160,
+    basePrice: 12000,
   },
   p vnode_pro: {
     name: "PVNode Pro (AMD EPYC Rome)",
     cpuModel: "AMD EPYC Rome 7702",
-    basePrice: 95000,
-    perCore: 12500,
-    perGbRam: 4800,
-    perGbSsd: 240,
+    basePrice: 25000,
   },
   p vnode_ultra: {
     name: "PVNode Ultra (AMD Ryzen 9 9950X)",
     cpuModel: "AMD Ryzen 9 9950X",
-    basePrice: 145000,
-    perCore: 16500,
-    perGbRam: 6200,
-    perGbSsd: 320,
+    basePrice: 35000,
   },
 } as const;
 
@@ -88,9 +72,6 @@ export interface BuildConfig {
   cpu: number;
   ram: number;
   ssd: number;
-  nvme: number;
-  hdd: number;
-  bandwidth: number;
   os: string;
   java: string;
   mcVersion: string;
@@ -102,9 +83,6 @@ export const DEFAULT_CONFIG: BuildConfig = {
   cpu: 2,
   ram: 4,
   ssd: 20,
-  nvme: 0,
-  hdd: 0,
-  bandwidth: 5,
   os: "Ubuntu 24.04 LTS",
   java: "Java 21",
   mcVersion: "1.21.4",
@@ -131,9 +109,6 @@ export function normalizeConfig(input: Partial<BuildConfig>): BuildConfig {
     cpu: clampStep(Number(cfg.cpu), LIMITS.cpu),
     ram: clampStep(Number(cfg.ram), LIMITS.ram),
     ssd: clampStep(Number(cfg.ssd), LIMITS.ssd),
-    nvme: clampStep(Number(cfg.nvme), LIMITS.nvme),
-    hdd: clampStep(Number(cfg.hdd), LIMITS.hdd),
-    bandwidth: clampStep(Number(cfg.bandwidth), LIMITS.bandwidth),
     software: (SOFTWARES.find((s) => s.id === cfg.software)?.id ?? "paper") as SoftwareId,
     os: OPERATING_SYSTEMS.includes(cfg.os) ? cfg.os : OPERATING_SYSTEMS[0],
     java: JAVA_VERSIONS.includes(cfg.java) ? cfg.java : JAVA_VERSIONS[0],
@@ -230,18 +205,20 @@ export function computeQuote(
   formula: PriceFormula,
   coupon?: Coupon | null,
 ): Quote {
+  // Simplified pricing as requested:
+  // CPU: Rp4.000/core | RAM: Rp4.000/GB | SSD: Rp10.000/GB
+  const cpuPrice = cfg.cpu * 4000;
+  const ramPrice = cfg.ram * 4000;
+  const ssdPrice = cfg.ssd * 10000;
+
   const lines: PriceBreakdown[] = [
-    { label: "Base platform", amount: formula.base },
-    { label: `${cfg.cpu} vCore CPU`, amount: cfg.cpu * formula.perCore },
-    { label: `${cfg.ram} GB RAM DDR5`, amount: cfg.ram * formula.perGbRam },
+    { label: `${cfg.cpu} Core`, amount: cpuPrice },
+    { label: `${cfg.ram} GB RAM`, amount: ramPrice },
+    { label: `${cfg.ssd} GB SSD`, amount: ssdPrice },
   ];
-  if (cfg.ssd) lines.push({ label: `${cfg.ssd} GB SSD`, amount: cfg.ssd * formula.perGbSsd });
-  if (cfg.nvme) lines.push({ label: `${cfg.nvme} GB NVMe Gen4`, amount: cfg.nvme * formula.perGbNvme });
-  if (cfg.hdd) lines.push({ label: `${cfg.hdd} GB HDD`, amount: cfg.hdd * formula.perGbHdd });
-  lines.push({ label: `${cfg.bandwidth} TB bandwidth`, amount: cfg.bandwidth * formula.perTbBandwidth });
 
   const raw = lines.reduce((sum, l) => sum + l.amount, 0);
-  let monthly = Math.max(45000, Math.round(raw / 500) * 500);
+  let monthly = Math.max(15000, raw);
 
   const cycle = CYCLES[cfg.billingCycle];
   const beforeCycle = monthly * cycle.months;
