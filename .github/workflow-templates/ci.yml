@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "arena/**"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  quality:
+    name: Lint, typecheck, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://wangstore.id
+          AUTH_SECRET: ci-only-secret-not-used-in-production-32chars
+
+      - name: Smoke test (health, home, sitemap, robots)
+        run: |
+          npm run start -- -p 3000 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:3000/api/health && break || sleep 2; done
+          for path in / /builder /blog /status /legal/terms /sitemap.xml /robots.txt; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:3000$path")
+            echo "$code $path"
+            [ "$code" = "200" ] || exit 1
+          done
+        env:
+          AUTH_SECRET: ci-only-secret-not-used-in-production-32chars
+
+  shellcheck:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate syntax
+        run: for f in scripts/*.sh; do bash -n "$f"; done
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: error
+
+  security:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          tags: wangstore/app:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

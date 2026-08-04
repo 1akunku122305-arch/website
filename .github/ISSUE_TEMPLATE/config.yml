@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/hyunkk-ark/repo-website/security/advisories/new
+    about: Report vulnerabilities privately — never in a public issue.
+  - name: Community support
+    url: https://discord.gg/wangstore
+    about: Ask usage questions in the WangStore Discord.

@@ -1,0 +1,86 @@
+name: wangstore
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: wangstore/app:latest
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      WANGSTORE_DATA_DIR: /app/data
+    volumes:
+      - wangstore-data:/app/data
+      - wangstore-uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [wangstore]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wangstore}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wangstore}
+      POSTGRES_DB: ${POSTGRES_DB:-wangstore}
+    volumes:
+      - wangstore-postgres:/var/lib/postgresql/data
+      - ../database/schema.sql:/docker-entrypoint-initdb.d/10-schema.sql:ro
+    networks: [wangstore]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wangstore} -d ${POSTGRES_DB:-wangstore}"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - wangstore-redis:/data
+    networks: [wangstore]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/wangstore.conf:/etc/nginx/conf.d/wangstore.conf:ro
+      - ../nginx/proxy-params.conf:/etc/nginx/proxy-params.conf:ro
+      - wangstore-certs:/etc/letsencrypt
+    depends_on:
+      app:
+        condition: service_healthy
+    networks: [wangstore]
+
+volumes:
+  wangstore-data:
+  wangstore-uploads:
+  wangstore-postgres:
+  wangstore-redis:
+  wangstore-certs:
+
+networks:
+  wangstore:
+    driver: bridge
