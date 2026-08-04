@@ -36,6 +36,11 @@ import { PVNodeFormulaModule } from "./modules/pvnode-formula";
 import { VPSFormulaModule } from "./modules/vps-formula";
 import { SharedHostingModule } from "./modules/shared-hosting";
 import { DedicatedServerModule } from "./modules/dedicated-server";
+import { PVNodePackagesModule } from "./modules/pvnode-packages";
+import { VPSPackagesModule } from "./modules/vps-packages";
+import { OtherServicesModule } from "./modules/other-services";
+import { MediaManagerModule } from "./modules/media-manager";
+import { StockManagementModule } from "./modules/stock-management";
 
 export interface ModuleDef {
   id: string;
@@ -57,6 +62,11 @@ const MODULES: ModuleDef[] = [
   { id: "sharedHosting", label: "Shared Hosting", group: "Produk", icon: Boxes, minRole: "ADMIN" },
   { id: "botHosting", label: "Bot Hosting", group: "Produk", icon: Boxes, minRole: "ADMIN" },
   { id: "dedicatedServer", label: "Dedicated Server", group: "Produk", icon: Server, minRole: "ADMIN" },
+  { id: "pvnodePackages", label: "PVNode Packages", group: "Produk", icon: Boxes, minRole: "ADMIN" },
+  { id: "vpsPackages", label: "VPS Packages", group: "Produk", icon: Boxes, minRole: "ADMIN" },
+  { id: "otherServices", label: "Other Services", group: "Produk", icon: Boxes, minRole: "ADMIN" },
+  { id: "mediaManager", label: "Media Manager", group: "Pengaturan", icon: Palette, minRole: "ADMIN" },
+  { id: "stockManagement", label: "Stock Management", group: "Produk", icon: Server, minRole: "ADMIN" },
   { id: "analytics", label: "Analitik", group: "Komersial", icon: BarChart3, minRole: "STAFF" },
   { id: "posts", label: "Blog", group: "Konten", icon: Newspaper, minRole: "ADMIN" },
   { id: "articles", label: "Knowledge Base", group: "Konten", icon: FileText, minRole: "ADMIN" },
@@ -290,6 +300,11 @@ export function DashboardShell({
         {active === "sharedHosting" ? <SharedHostingModule /> : null}
         {active === "botHosting" ? <SharedHostingModule /> : null}
         {active === "dedicatedServer" ? <DedicatedServerModule /> : null}
+        {active === "pvnodePackages" ? <PVNodePackagesModule /> : null}
+        {active === "vpsPackages" ? <VPSPackagesModule /> : null}
+        {active === "otherServices" ? <OtherServicesModule /> : null}
+        {active === "mediaManager" ? <MediaManagerModule /> : null}
+        {active === "stockManagement" ? <StockManagementModule /> : null}
         {active === "coupons" ? (
           <CollectionModule
             title="Kupon & Promosi"
