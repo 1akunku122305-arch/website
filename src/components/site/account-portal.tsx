@@ -12,7 +12,15 @@ import { useMounted, useStoredJson } from "@/lib/client-hooks";
 const EMAIL_KEY = "wangstore:account:email";
 const CONFIG_KEY = "wangstore:builder:v1";
 
-export function AccountPortal({ whatsapp, discord }: { whatsapp: string; discord: string }) {
+export function AccountPortal({ 
+  whatsapp, 
+  discord, 
+  user 
+}: { 
+  whatsapp: string; 
+  discord: string;
+  user?: { name: string; email: string } | null;
+}) {
   const mounted = useMounted();
 
   // Remembered email and saved build are read after hydration, so the first
@@ -56,9 +64,20 @@ export function AccountPortal({ whatsapp, discord }: { whatsapp: string; discord
   return (
     <div className="space-y-6">
       <Card>
-        <h1 className="font-[family-name:var(--font-display)] text-2xl font-black">Portal Pelanggan</h1>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="font-[family-name:var(--font-display)] text-2xl font-black">Portal Pelanggan</h1>
+            {user && (
+              <p className="mt-1 text-[#c3ff3e] font-bold">Selamat datang, {user.name}</p>
+            )}
+          </div>
+          <a href="/customer-login" className="text-xs text-[#8d83ad] hover:text-white">Logout</a>
+        </div>
         <p className="mt-1 text-sm text-[#a99fc8]">
-          Masukkan email yang Anda gunakan saat memesan untuk melihat riwayat pesanan, tiket dukungan, dan notifikasi.
+          {user 
+            ? "Berikut adalah riwayat pesanan dan tiket dukungan Anda." 
+            : "Masukkan email yang Anda gunakan saat memesan untuk melihat riwayat pesanan, tiket dukungan, dan notifikasi."
+          }
         </p>
         <form
           className="mt-5 flex flex-col gap-3 sm:flex-row"

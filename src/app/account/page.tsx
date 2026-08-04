@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
 import { read } from "@/lib/db";
 import { siteUrl } from "@/lib/content";
 import { PageHero } from "@/components/site/page-hero";
@@ -14,6 +16,13 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountPage() {
+  const session = await getSession();
+  
+  // Jika belum login, arahkan ke halaman login pelanggan
+  if (!session) {
+    redirect("/customer-login");
+  }
+
   const db = await read();
   return (
     <>
@@ -23,7 +32,11 @@ export default async function AccountPage() {
         description="Pantau pesanan, tiket, dan konfigurasi tersimpan Anda di satu tempat."
       />
       <section className="mx-auto max-w-5xl px-4 py-14 sm:px-6">
-        <AccountPortal whatsapp={db.settings.social.whatsapp} discord={db.settings.social.discord} />
+        <AccountPortal 
+          whatsapp={db.settings.social.whatsapp} 
+          discord={db.settings.social.discord}
+          user={session}
+        />
       </section>
     </>
   );
