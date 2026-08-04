@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String    @id @default(cuid())
+  email                   String    @unique
+  name                    String
+  role                    String    @default("STAFF")
+  passwordHash            String
+  createdAt               DateTime  @default(now())
+  emailVerified           Boolean   @default(false)
+  emailVerificationToken  String?
+  twoFactorEnabled        Boolean   @default(false)
+  twoFactorSecret         String?
+  avatar                  String?
+  whatsapp                String?
+
+  orders                  Order[]
+}
+
+model Order {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  status      String   @default("NEW")
+  customerName String
+  customerEmail String
+  customerWhatsapp String
+  serverName  String
+  notes       String?
+  total       Int
+  config      Json
+
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  pdfUrl    String?
+  createdAt DateTime @default(now())
+}
+
+model PterodactylUser {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  pterodactylId Int
+  createdAt   DateTime @default(now())
+}
