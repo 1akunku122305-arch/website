@@ -172,6 +172,54 @@ export interface Settings {
   };
 }
 
+export interface SharedHostingPackage {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  disk: string;
+  bandwidth: string;
+  websites: number;
+  email: number;
+  databases: number;
+  features: string[];
+  popular?: boolean;
+}
+
+export interface BotHostingPackage {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  ram: string;
+  cpu: string;
+  storage: string;
+  maxBots: number;
+  features: string[];
+}
+
+export interface DedicatedServer {
+  id: string;
+  name: string;
+  cpu: string;
+  ram: string;
+  storage: string;
+  bandwidth: string;
+  price: number;
+  stock: number;
+  location: string;
+  available: boolean;
+}
+
+export interface OtherService {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  unit: string;
+  category: string;
+}
+
 export interface Database {
   users: User[];
   settings: Settings;
@@ -188,4 +236,8 @@ export interface Database {
   announcements: Announcement[];
   audit: AuditLog[];
   testimonials: { name: string; role: string; body: string; rating: number }[];
+  sharedHosting: SharedHostingPackage[];
+  botHosting: BotHostingPackage[];
+  dedicatedServers: DedicatedServer[];
+  otherServices: OtherService[];
 }
