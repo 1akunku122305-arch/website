@@ -13,8 +13,19 @@ export const SOFTWARES = [
 
 export type SoftwareId = (typeof SOFTWARES)[number]["id"];
 
-export const MC_VERSIONS = ["1.21.4", "1.21.1", "1.20.6", "1.20.4", "1.19.4", "1.18.2", "1.16.5", "1.12.2", "1.8.9"];
-export const JAVA_VERSIONS = ["Java 21", "Java 17", "Java 11", "Java 8"];
+export const MC_VERSIONS = [
+  "1.21.4", "1.21.3", "1.21.1", 
+  "1.20.6", "1.20.4", "1.20.1",
+  "1.19.4", "1.19.2",
+  "1.18.2",
+  "1.17.1",
+  "1.16.5"
+];
+
+export const JAVA_VERSIONS = [
+  "Java 25", "Java 24", "Java 23", "Java 22", "Java 21", 
+  "Java 17", "Java 11", "Java 8"
+];
 export const OPERATING_SYSTEMS = [
   "Ubuntu 24.04 LTS",
   "Ubuntu 22.04 LTS",
@@ -23,11 +34,7 @@ export const OPERATING_SYSTEMS = [
   "Rocky Linux 9",
   "Windows Server 2022",
 ];
-export const PANELS = [
-  { id: "none", label: "Tanpa Panel (SSH)" },
-  { id: "pterodactyl", label: "Pterodactyl" },
-  { id: "reviactyl", label: "Reviactyl" },
-] as const;
+// Panel removed as per user request
 
 export const LIMITS = {
   cpu: { min: 2, max: 32, step: 1 },
@@ -88,13 +95,6 @@ export interface BuildConfig {
   java: string;
   mcVersion: string;
   software: SoftwareId;
-  panel: (typeof PANELS)[number]["id"];
-  region: string;
-  dedicatedIp: boolean;
-  extraPorts: number;
-  backup: boolean;
-  prioritySupport: boolean;
-  ddosAdvanced: boolean;
   billingCycle: "monthly" | "quarterly" | "yearly";
 }
 
@@ -109,13 +109,6 @@ export const DEFAULT_CONFIG: BuildConfig = {
   java: "Java 21",
   mcVersion: "1.21.4",
   software: "paper",
-  panel: "pterodactyl",
-  region: "id",
-  dedicatedIp: false,
-  extraPorts: 0,
-  backup: true,
-  prioritySupport: false,
-  ddosAdvanced: false,
   billingCycle: "monthly",
 };
 
@@ -141,17 +134,11 @@ export function normalizeConfig(input: Partial<BuildConfig>): BuildConfig {
     nvme: clampStep(Number(cfg.nvme), LIMITS.nvme),
     hdd: clampStep(Number(cfg.hdd), LIMITS.hdd),
     bandwidth: clampStep(Number(cfg.bandwidth), LIMITS.bandwidth),
-    extraPorts: clampStep(Number(cfg.extraPorts), LIMITS.ports),
     software: (SOFTWARES.find((s) => s.id === cfg.software)?.id ?? "paper") as SoftwareId,
-    panel: (PANELS.find((p) => p.id === cfg.panel)?.id ?? "pterodactyl") as BuildConfig["panel"],
     os: OPERATING_SYSTEMS.includes(cfg.os) ? cfg.os : OPERATING_SYSTEMS[0],
     java: JAVA_VERSIONS.includes(cfg.java) ? cfg.java : JAVA_VERSIONS[0],
     mcVersion: MC_VERSIONS.includes(cfg.mcVersion) ? cfg.mcVersion : MC_VERSIONS[0],
     billingCycle: cfg.billingCycle in CYCLES ? cfg.billingCycle : "monthly",
-    dedicatedIp: Boolean(cfg.dedicatedIp),
-    backup: Boolean(cfg.backup),
-    prioritySupport: Boolean(cfg.prioritySupport),
-    ddosAdvanced: Boolean(cfg.ddosAdvanced),
   };
 }
 
@@ -241,12 +228,8 @@ export function validateHardwareSoftware(cfg: BuildConfig): { valid: boolean; wa
 export function computeQuote(
   cfg: BuildConfig,
   formula: PriceFormula,
-  regions: Region[],
   coupon?: Coupon | null,
 ): Quote {
-  const region = regions.find((r) => r.id === cfg.region) ?? regions[0];
-  const mult = region?.priceMultiplier ?? 1;
-
   const lines: PriceBreakdown[] = [
     { label: "Base platform", amount: formula.base },
     { label: `${cfg.cpu} vCore CPU`, amount: cfg.cpu * formula.perCore },
@@ -256,20 +239,9 @@ export function computeQuote(
   if (cfg.nvme) lines.push({ label: `${cfg.nvme} GB NVMe Gen4`, amount: cfg.nvme * formula.perGbNvme });
   if (cfg.hdd) lines.push({ label: `${cfg.hdd} GB HDD`, amount: cfg.hdd * formula.perGbHdd });
   lines.push({ label: `${cfg.bandwidth} TB bandwidth`, amount: cfg.bandwidth * formula.perTbBandwidth });
-  if (cfg.panel === "pterodactyl") lines.push({ label: "Pterodactyl Panel", amount: formula.panelPterodactyl });
-  if (cfg.panel === "reviactyl") lines.push({ label: "Reviactyl Panel", amount: formula.panelReviactyl });
-  if (cfg.dedicatedIp) lines.push({ label: "Dedicated IPv4", amount: formula.dedicatedIp });
-  if (cfg.extraPorts) lines.push({ label: `${cfg.extraPorts} port tambahan`, amount: cfg.extraPorts * formula.perExtraPort });
-  if (cfg.backup) lines.push({ label: "Automatic backup", amount: formula.backup });
-  if (cfg.prioritySupport) lines.push({ label: "Priority support", amount: formula.prioritySupport });
-  if (cfg.ddosAdvanced) lines.push({ label: "Advanced DDoS filtering", amount: formula.ddosAdvanced });
 
   const raw = lines.reduce((sum, l) => sum + l.amount, 0);
-  let monthly = Math.round((raw * mult) / 500) * 500;
-  if (region && region.priceMultiplier !== 1) {
-    lines.push({ label: `Region ${region.name} (×${region.priceMultiplier})`, amount: monthly - raw });
-  }
-  monthly = Math.max(45000, monthly);
+  let monthly = Math.max(45000, Math.round(raw / 500) * 500);
 
   const cycle = CYCLES[cfg.billingCycle];
   const beforeCycle = monthly * cycle.months;

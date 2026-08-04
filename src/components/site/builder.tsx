@@ -11,7 +11,6 @@ import {
   LIMITS,
   MC_VERSIONS,
   OPERATING_SYSTEMS,
-  PANELS,
   SOFTWARES,
   computeQuote,
   formatIDR,
@@ -20,7 +19,7 @@ import {
   type BuildConfig,
   type HardwareTier,
 } from "@/lib/pricing";
-import type { Coupon, PriceFormula, Region } from "@/lib/types";
+import type { Coupon, PriceFormula } from "@/lib/types";
 import { Badge, Button, Card, Field, Meter, Stat } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { useStoredJson } from "@/lib/client-hooks";
@@ -140,10 +139,7 @@ function Toggle({
   );
 }
 
-export function ServerBuilder({ formula, regions, whatsapp, tier = "pvnode" }: Props & { tier?: HardwareTier }) {
-  // A previously saved build is read after hydration (null on the server), so
-  // the first client render matches the server exactly. Any user edit takes
-  // precedence from then on.
+export function ServerBuilder({ formula, whatsapp, tier = "pvnode" }: Props & { tier?: HardwareTier }) {
   const stored = useStoredJson<Partial<BuildConfig>>(STORAGE_KEY);
   const [edited, setCfg] = useState<BuildConfig | null>(null);
   const [selectedTier, setSelectedTier] = useState<HardwareTier>(tier);
@@ -166,7 +162,7 @@ export function ServerBuilder({ formula, regions, whatsapp, tier = "pvnode" }: P
     [cfg],
   );
 
-  const quote = useMemo(() => computeQuote(cfg, formula, regions, coupon), [cfg, formula, regions, coupon]);
+  const quote = useMemo(() => computeQuote(cfg, formula, coupon), [cfg, formula, coupon]);
   const m = quote.metrics;
   const software = SOFTWARES.find((s) => s.id === cfg.software)!;
   const isProxy = software.kind === "proxy";
@@ -174,7 +170,6 @@ export function ServerBuilder({ formula, regions, whatsapp, tier = "pvnode" }: P
   const validation = validateHardwareSoftware(cfg);
 
   const summary = useMemo(() => {
-    const region = regions.find((r) => r.id === cfg.region);
     const lines = [
       "*PESANAN WANGSTORE*",
       "",
@@ -190,19 +185,10 @@ export function ServerBuilder({ formula, regions, whatsapp, tier = "pvnode" }: P
       cfg.nvme ? `NVMe        : ${cfg.nvme} GB` : "",
       cfg.hdd ? `HDD         : ${cfg.hdd} GB` : "",
       `Bandwidth   : ${cfg.bandwidth} TB`,
-      `Region      : ${region?.flag ?? ""} ${region?.name ?? cfg.region}`,
       `OS          : ${cfg.os}`,
       `Software    : ${software.label}`,
       !isProxy ? `Minecraft   : ${cfg.mcVersion}` : "",
       `Java        : ${cfg.java}`,
-      `Panel       : ${PANELS.find((p) => p.id === cfg.panel)?.label}`,
-      "",
-      "*ADD-ON*",
-      `Dedicated IP: ${cfg.dedicatedIp ? "Ya" : "Tidak"}`,
-      `Port ekstra : ${cfg.extraPorts}`,
-      `Backup      : ${cfg.backup ? "Ya" : "Tidak"}`,
-      `Priority    : ${cfg.prioritySupport ? "Ya" : "Tidak"}`,
-      `DDoS Adv.   : ${cfg.ddosAdvanced ? "Ya" : "Tidak"}`,
       "",
       "*ESTIMASI PERFORMA*",
       `TPS         : ~${m.tps}`,
@@ -219,7 +205,7 @@ export function ServerBuilder({ formula, regions, whatsapp, tier = "pvnode" }: P
       form.notes ? `Catatan: ${form.notes}` : "",
     ];
     return lines.filter(Boolean).join("\n");
-  }, [cfg, form, quote, regions, software, isProxy, m]);
+  }, [cfg, form, quote, software, isProxy, m]);
 
   async function applyCoupon() {
     const code = form.coupon.trim().toUpperCase();
