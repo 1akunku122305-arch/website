@@ -32,6 +32,10 @@ import { SettingsModule } from "./modules/settings";
 import { PriceFormulaModule } from "./modules/price-formula";
 import { AuditModule } from "./modules/audit";
 import { CustomersModule } from "./modules/customers";
+import { PVNodeFormulaModule } from "./modules/pvnode-formula";
+import { VPSFormulaModule } from "./modules/vps-formula";
+import { SharedHostingModule } from "./modules/shared-hosting";
+import { DedicatedServerModule } from "./modules/dedicated-server";
 
 export interface ModuleDef {
   id: string;
@@ -47,7 +51,12 @@ const MODULES: ModuleDef[] = [
   { id: "customers", label: "Pelanggan", group: "Utama", icon: Users, minRole: "STAFF" },
   { id: "tickets", label: "Tiket & Kontak", group: "Utama", icon: LifeBuoy, minRole: "STAFF" },
   { id: "priceFormula", label: "Formula Harga", group: "Komersial", icon: Calculator, minRole: "ADMIN" },
+  { id: "pvnodeFormula", label: "PVNode Formula", group: "Komersial", icon: Calculator, minRole: "ADMIN" },
+  { id: "vpsFormula", label: "VPS Formula", group: "Komersial", icon: Calculator, minRole: "ADMIN" },
   { id: "coupons", label: "Kupon & Promo", group: "Komersial", icon: Tag, minRole: "ADMIN" },
+  { id: "sharedHosting", label: "Shared Hosting", group: "Produk", icon: Boxes, minRole: "ADMIN" },
+  { id: "botHosting", label: "Bot Hosting", group: "Produk", icon: Boxes, minRole: "ADMIN" },
+  { id: "dedicatedServer", label: "Dedicated Server", group: "Produk", icon: Server, minRole: "ADMIN" },
   { id: "analytics", label: "Analitik", group: "Komersial", icon: BarChart3, minRole: "STAFF" },
   { id: "posts", label: "Blog", group: "Konten", icon: Newspaper, minRole: "ADMIN" },
   { id: "articles", label: "Knowledge Base", group: "Konten", icon: FileText, minRole: "ADMIN" },
@@ -276,6 +285,11 @@ export function DashboardShell({
           />
         ) : null}
         {active === "priceFormula" ? <PriceFormulaModule initial={initial.priceFormula} /> : null}
+        {active === "pvnodeFormula" ? <PVNodeFormulaModule /> : null}
+        {active === "vpsFormula" ? <VPSFormulaModule /> : null}
+        {active === "sharedHosting" ? <SharedHostingModule /> : null}
+        {active === "botHosting" ? <SharedHostingModule /> : null}
+        {active === "dedicatedServer" ? <DedicatedServerModule /> : null}
         {active === "coupons" ? (
           <CollectionModule
             title="Kupon & Promosi"
