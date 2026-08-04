@@ -7,6 +7,10 @@ export interface User {
   role: Role;
   passwordHash: string;
   createdAt: string;
+  emailVerified: boolean;
+  emailVerificationToken?: string;
+  twoFactorEnabled: boolean;
+  twoFactorSecret?: string;
 }
 
 export interface Region {
