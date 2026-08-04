@@ -6,6 +6,7 @@ import { AlertTriangle, Check, Loader2, MessageCircle, RotateCcw, Save, Tag } fr
 import {
   CYCLES,
   DEFAULT_CONFIG,
+  HARDWARE_TIERS,
   JAVA_VERSIONS,
   LIMITS,
   MC_VERSIONS,
@@ -15,7 +16,9 @@ import {
   computeQuote,
   formatIDR,
   normalizeConfig,
+  validateHardwareSoftware,
   type BuildConfig,
+  type HardwareTier,
 } from "@/lib/pricing";
 import type { Coupon, PriceFormula, Region } from "@/lib/types";
 import { Badge, Button, Card, Field, Meter, Stat } from "@/components/ui";
@@ -137,13 +140,17 @@ function Toggle({
   );
 }
 
-export function ServerBuilder({ formula, regions, whatsapp }: Props) {
+export function ServerBuilder({ formula, regions, whatsapp, tier = "pvnode" }: Props & { tier?: HardwareTier }) {
   // A previously saved build is read after hydration (null on the server), so
   // the first client render matches the server exactly. Any user edit takes
   // precedence from then on.
   const stored = useStoredJson<Partial<BuildConfig>>(STORAGE_KEY);
   const [edited, setCfg] = useState<BuildConfig | null>(null);
+  const [selectedTier, setSelectedTier] = useState<HardwareTier>(tier);
+  
   const cfg = edited ?? (stored ? normalizeConfig(stored) : DEFAULT_CONFIG);
+  
+  const hardware = HARDWARE_TIERS[selectedTier];
   const [form, setForm] = useState<OrderForm>(EMPTY_FORM);
   const [coupon, setCoupon] = useState<Coupon | null>(null);
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
@@ -163,6 +170,8 @@ export function ServerBuilder({ formula, regions, whatsapp }: Props) {
   const m = quote.metrics;
   const software = SOFTWARES.find((s) => s.id === cfg.software)!;
   const isProxy = software.kind === "proxy";
+  
+  const validation = validateHardwareSoftware(cfg);
 
   const summary = useMemo(() => {
     const region = regions.find((r) => r.id === cfg.region);
@@ -291,6 +300,29 @@ export function ServerBuilder({ formula, regions, whatsapp }: Props) {
   return (
     <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
       <div className="space-y-6">
+        {/* Hardware Tier Selector */}
+        <Card>
+          <h2 className="font-[family-name:var(--font-display)] text-xl font-black mb-4">Pilih Hardware Tier</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            {Object.entries(HARDWARE_TIERS).map(([key, h]) => (
+              <button
+                key={key}
+                onClick={() => setSelectedTier(key as HardwareTier)}
+                className={cn(
+                  "rounded-2xl border-[3px] border-black p-4 text-left transition-all hover:-translate-y-0.5",
+                  selectedTier === key 
+                    ? "bg-gradient-to-br from-[#d946ef] to-[#7c3aed] text-white shadow-[3px_3px_0_0_#000]" 
+                    : "bg-[#150f28] text-[#cdc3ea]"
+                )}
+              >
+                <div className="font-black text-sm">{h.name}</div>
+                <div className="text-xs mt-1 opacity-75">{h.cpuModel}</div>
+                <div className="text-[#c3ff3e] text-xs mt-2 font-bold">Mulai {formatIDR(h.basePrice)}/bln</div>
+              </button>
+            ))}
+          </div>
+        </Card>
+
         {/* Resources */}
         <Card>
           <div className="flex items-center justify-between gap-3">
@@ -641,6 +673,19 @@ export function ServerBuilder({ formula, regions, whatsapp }: Props) {
             Hasil nyata dipengaruhi jumlah plugin, view-distance, dan perilaku pemain.
           </p>
         </Card>
+
+        {/* Hardware Validation Warning */}
+        {!validation.valid && validation.warning && (
+          <Card className="border-[#f87171]">
+            <div className="flex gap-3 text-[#f87171]">
+              <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" />
+              <div>
+                <div className="font-black">Peringatan Konfigurasi</div>
+                <div className="text-sm mt-1">{validation.warning}</div>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <Card className="mt-6">
           <p className="label">Ringkasan Pesan WhatsApp</p>

@@ -39,6 +39,44 @@ export const LIMITS = {
   ports: { min: 0, max: 20, step: 1 },
 };
 
+// Hardware Tiers sesuai prompt
+export const HARDWARE_TIERS = {
+  p vnode: {
+    name: "PVNode (Intel Xeon E5-2690 v4)",
+    cpuModel: "Intel Xeon E5-2690 v4",
+    basePrice: 45000,
+    perCore: 8500,
+    perGbRam: 3200,
+    perGbSsd: 180,
+  },
+  vps: {
+    name: "VPS (Intel Xeon E5-2690 v4)",
+    cpuModel: "Intel Xeon E5-2690 v4",
+    basePrice: 42000,
+    perCore: 7800,
+    perGbRam: 2900,
+    perGbSsd: 160,
+  },
+  p vnode_pro: {
+    name: "PVNode Pro (AMD EPYC Rome)",
+    cpuModel: "AMD EPYC Rome 7702",
+    basePrice: 95000,
+    perCore: 12500,
+    perGbRam: 4800,
+    perGbSsd: 240,
+  },
+  p vnode_ultra: {
+    name: "PVNode Ultra (AMD Ryzen 9 9950X)",
+    cpuModel: "AMD Ryzen 9 9950X",
+    basePrice: 145000,
+    perCore: 16500,
+    perGbRam: 6200,
+    perGbSsd: 320,
+  },
+} as const;
+
+export type HardwareTier = keyof typeof HARDWARE_TIERS;
+
 export interface BuildConfig {
   cpu: number;
   ram: number;
@@ -166,6 +204,38 @@ export function estimateMetrics(cfg: BuildConfig): Metrics {
   const grade = score >= 60 ? "S" : score >= 40 ? "A" : score >= 22 ? "B" : "C";
 
   return { tps, players, cpuLoad, ramUsage, plugins, grade };
+}
+
+// Validasi kombinasi hardware vs software (sesuai prompt)
+export function validateHardwareSoftware(cfg: BuildConfig): { valid: boolean; warning?: string } {
+  const sw = SOFTWARES.find((s) => s.id === cfg.software);
+  if (!sw) return { valid: true };
+
+  // Forge / NeoForge membutuhkan RAM lebih tinggi
+  if ((cfg.software === "forge" || cfg.software === "neoforge") && cfg.ram < 8) {
+    return {
+      valid: false,
+      warning: "Forge & NeoForge membutuhkan minimal 8 GB RAM. Direkomendasikan 12 GB+ untuk modpack besar.",
+    };
+  }
+
+  // Fabric butuh RAM lebih tinggi dari Vanilla
+  if (cfg.software === "fabric" && cfg.ram < 6) {
+    return {
+      valid: false,
+      warning: "Fabric direkomendasikan minimal 6 GB RAM untuk performa optimal.",
+    };
+  }
+
+  // Proxy (Velocity/Waterfall) tidak butuh banyak RAM
+  if ((cfg.software === "velocity" || cfg.software === "waterfall") && cfg.ram > 12) {
+    return {
+      valid: true,
+      warning: "Proxy biasanya cukup dengan 4-8 GB RAM. RAM berlebih tidak meningkatkan performa signifikan.",
+    };
+  }
+
+  return { valid: true };
 }
 
 export function computeQuote(

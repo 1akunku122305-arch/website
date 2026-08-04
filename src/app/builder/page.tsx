@@ -29,6 +29,7 @@ export default async function BuilderPage() {
           formula={db.priceFormula}
           regions={db.regions}
           whatsapp={db.settings.social.whatsapp}
+          tier="pvnode"
         />
       </section>
     </>
