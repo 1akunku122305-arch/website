@@ -44,7 +44,7 @@ export const LIMITS = {
 
 // Hardware Tiers (pricing simplified as per request)
 export const HARDWARE_TIERS = {
-  p vnode: {
+  pvnode: {
     name: "PVNode (Intel Xeon E5-2690 v4)",
     cpuModel: "Intel Xeon E5-2690 v4",
     basePrice: 15000,
@@ -54,12 +54,12 @@ export const HARDWARE_TIERS = {
     cpuModel: "Intel Xeon E5-2690 v4",
     basePrice: 12000,
   },
-  p vnode_pro: {
+  pvnode_pro: {
     name: "PVNode Pro (AMD EPYC Rome)",
     cpuModel: "AMD EPYC Rome 7702",
     basePrice: 25000,
   },
-  p vnode_ultra: {
+  pvnode_ultra: {
     name: "PVNode Ultra (AMD Ryzen 9 9950X)",
     cpuModel: "AMD Ryzen 9 9950X",
     basePrice: 35000,
@@ -162,7 +162,7 @@ export function estimateMetrics(cfg: BuildConfig): Metrics {
   const ramUsage = Math.min(94, Math.round((players / Math.max(1, ramCapacity)) * 74 + 12 * sw.ramFactor));
   const plugins = Math.max(5, Math.round(cfg.ram * 4.5 + cfg.cpu * 6 - (isProxy ? 20 : 0)));
 
-  const score = cfg.cpu * 2 + cfg.ram + (cfg.nvme > 0 ? 6 : 0);
+  const score = cfg.cpu * 2 + cfg.ram + (cfg.ssd > 100 ? 4 : 0);
   const grade = score >= 60 ? "S" : score >= 40 ? "A" : score >= 22 ? "B" : "C";
 
   return { tps, players, cpuLoad, ramUsage, plugins, grade };

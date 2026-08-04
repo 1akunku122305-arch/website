@@ -60,7 +60,7 @@ export function DedicatedServerModule() {
                   />
                 </td>
                 <td className="py-4 px-4">
-                  <Badge tone={server.available ? "lime" : "default"}>
+                  <Badge tone={server.available ? "lime" : "muted"}>
                     {server.available ? "Tersedia" : "Habis"}
                   </Badge>
                 </td>

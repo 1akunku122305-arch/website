@@ -27,9 +27,11 @@ export async function POST(req: NextRequest) {
       id: id("usr"),
       email: body.email.toLowerCase(),
       name: body.name,
-      role: "STAFF" as const, // Default role untuk pelanggan
+      role: "STAFF" as const,
       passwordHash,
       createdAt: new Date().toISOString(),
+      emailVerified: false,
+      twoFactorEnabled: false,
     };
 
     await write((d) => {

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Bell, Inbox, Loader2, Package, Save, Search, Settings2 } from "lucide-react";
 import type { Order, Ticket } from "@/lib/types";
-import { formatIDR, normalizeConfig, PANELS, SOFTWARES, type BuildConfig } from "@/lib/pricing";
+import { formatIDR, normalizeConfig, SOFTWARES, type BuildConfig } from "@/lib/pricing";
 import { Badge, Button, ButtonLink, Card, Stat } from "@/components/ui";
 import { formatDateTime } from "@/lib/utils";
 import { useMounted, useStoredJson } from "@/lib/client-hooks";
@@ -146,7 +146,7 @@ export function AccountPortal({
                     <p className="mt-3 text-xs text-[#a99fc8]">
                       {String(o.config.cpu)} vCore • {String(o.config.ram)} GB RAM • {String(o.config.ssd)} GB SSD •{" "}
                       {SOFTWARES.find((s) => s.id === o.config.software)?.label} •{" "}
-                      {PANELS.find((p) => p.id === o.config.panel)?.label}
+                      Pterodactyl
                     </p>
                     <Link href={`/order/${o.id}`} className="mt-3 inline-block text-xs font-black uppercase text-[#c084fc]">
                       Lihat detail →
@@ -211,8 +211,7 @@ export function AccountPortal({
           <>
             <p className="mt-3 text-sm text-[#cdc3ea]">
               {savedConfig.cpu} vCore • {savedConfig.ram} GB RAM • {savedConfig.ssd} GB SSD •{" "}
-              {savedConfig.nvme ? `${savedConfig.nvme} GB NVMe • ` : ""}
-              {SOFTWARES.find((s) => s.id === savedConfig.software)?.label} • region {savedConfig.region.toUpperCase()}
+              {SOFTWARES.find((s) => s.id === savedConfig.software)?.label}
             </p>
             <ButtonLink href="/builder" className="mt-4" size="sm">
               <Settings2 className="h-4 w-4" /> Lanjutkan di Builder

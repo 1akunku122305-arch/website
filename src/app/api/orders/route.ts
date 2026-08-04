@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { assertSameOrigin, fail, handleError, limited, ok, parseJson } from "@/lib/api";
 import { id, read, write } from "@/lib/db";
-import { computeQuote, formatIDR, normalizeConfig, CYCLES, PANELS, SOFTWARES } from "@/lib/pricing";
+import { computeQuote, formatIDR, normalizeConfig, CYCLES, SOFTWARES } from "@/lib/pricing";
 import { orderSchema } from "@/lib/validation";
 import { getSession } from "@/lib/auth";
 import type { Order } from "@/lib/types";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 function buildWhatsAppMessage(order: Order, monthly: number, cycleLabel: string): string {
   const c = order.config;
   const software = SOFTWARES.find((s) => s.id === c.software)?.label ?? String(c.software);
-  const panel = PANELS.find((p) => p.id === c.panel)?.label ?? String(c.panel);
+  const panel = "Pterodactyl"; // Panel removed from builder
 
   return [
     "*PESANAN WANGSTORE*",
@@ -26,23 +26,14 @@ function buildWhatsAppMessage(order: Order, monthly: number, cycleLabel: string)
     "*SPESIFIKASI*",
     `CPU         : ${c.cpu} vCore`,
     `RAM         : ${c.ram} GB`,
-    `SSD         : ${c.ssd} GB`,
-    c.nvme ? `NVMe        : ${c.nvme} GB` : "",
-    c.hdd ? `HDD         : ${c.hdd} GB` : "",
-    `Bandwidth   : ${c.bandwidth} TB`,
-    `Region      : ${c.region}`,
+      `SSD         : ${c.ssd} GB`,
     `OS          : ${c.os}`,
     `Software    : ${software}`,
     `Minecraft   : ${c.mcVersion}`,
     `Java        : ${c.java}`,
-    `Panel       : ${panel}`,
     "",
     "*ADD-ON*",
-    `Dedicated IP: ${c.dedicatedIp ? "Ya" : "Tidak"}`,
-    `Port ekstra : ${c.extraPorts}`,
-    `Backup      : ${c.backup ? "Ya" : "Tidak"}`,
-    `Priority    : ${c.prioritySupport ? "Ya" : "Tidak"}`,
-    `DDoS Adv.   : ${c.ddosAdvanced ? "Ya" : "Tidak"}`,
+
     "",
     "*BIAYA*",
     `Siklus      : ${cycleLabel}`,
@@ -73,11 +64,8 @@ export async function POST(req: NextRequest) {
     }
 
     const config = normalizeConfig(body.config as never);
-    const region = db.regions.find((r) => r.id === config.region && r.enabled);
-    if (!region) return fail("Region tidak tersedia.", 422);
-
     const coupon = body.coupon ? db.coupons.find((c) => c.code === body.coupon) ?? null : null;
-    const quote = computeQuote(config, db.priceFormula, db.regions, coupon);
+    const quote = computeQuote(config, db.priceFormula, coupon);
 
     const order: Order = {
       id: id("ord"),

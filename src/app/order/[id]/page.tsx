@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CheckCircle2, MessageCircle } from "lucide-react";
 import { read } from "@/lib/db";
-import { formatIDR, PANELS, SOFTWARES } from "@/lib/pricing";
+import { formatIDR, SOFTWARES } from "@/lib/pricing";
 import { PageHero } from "@/components/site/page-hero";
 import { Badge, ButtonLink, Card } from "@/components/ui";
 import { formatDateTime } from "@/lib/utils";
@@ -24,7 +24,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const c = order.config;
   const region = db.regions.find((r) => r.id === c.region);
   const software = SOFTWARES.find((s) => s.id === c.software)?.label ?? String(c.software);
-  const panel = PANELS.find((p) => p.id === c.panel)?.label ?? String(c.panel);
+  const panel = "Pterodactyl";
 
   const rows: [string, string][] = [
     ["CPU", `${c.cpu} vCore`],

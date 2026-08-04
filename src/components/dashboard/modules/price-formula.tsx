@@ -29,8 +29,7 @@ export function PriceFormulaModule({ initial }: { initial: PriceFormula }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
 
-  const minimalRegions = [{ id: "id", name: "Indonesia", flag: "", city: "", latencyMs: 0, priceMultiplier: 1, enabled: true }];
-  const preview = computeQuote(DEFAULT_CONFIG, formula, minimalRegions);
+  const preview = computeQuote(DEFAULT_CONFIG, formula);
 
   async function save() {
     setSaving(true);

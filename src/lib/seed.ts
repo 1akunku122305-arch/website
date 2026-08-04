@@ -13,6 +13,8 @@ export function seedDatabase(): Database {
         role: "OWNER",
         passwordHash: "$2b$10$EsxJjNC0.Jh56gdjlpcdC.tBl2KUdC4X9bS9Y9djuSXXo4tthhqT6",
         createdAt: now,
+        emailVerified: true,
+        twoFactorEnabled: false,
       },
     ],
     settings: {

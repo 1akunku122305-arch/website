@@ -201,6 +201,7 @@ export interface BotHostingPackage {
   storage: string;
   maxBots: number;
   features: string[];
+  popular?: boolean;
 }
 
 export interface DedicatedServer {

@@ -24,12 +24,12 @@ export default async function DedicatedServerPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="grid gap-8 md:grid-cols-3">
-          {db.dedicatedServers.map((server) => (
+          {(db.dedicatedServers || []).map((server) => (
             <Card key={server.id} className={!server.available ? "opacity-60" : ""}>
               <div>
                 <h3 className="font-[family-name:var(--font-display)] text-2xl font-black">{server.name}</h3>
                 <div className="mt-1 flex items-center gap-2">
-                  <Badge tone={server.available ? "lime" : "default"}>
+                  <Badge tone={server.available ? "lime" : "muted"}>
                     {server.available ? `${server.stock} tersedia` : "Habis"}
                   </Badge>
                   <span className="text-xs text-[#8d83ad]">{server.location}</span>
@@ -56,7 +56,6 @@ export default async function DedicatedServerPage() {
                 href={server.available ? "/contact" : "#"} 
                 className="mt-6 w-full" 
                 size="lg"
-                disabled={!server.available}
               >
                 {server.available ? "Pesan Dedicated Server" : "Stok Habis"}
               </ButtonLink>

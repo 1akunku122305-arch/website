@@ -24,7 +24,7 @@ export default async function SharedHostingPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="grid gap-8 md:grid-cols-3">
-          {db.sharedHosting.map((pkg) => (
+          {(db.sharedHosting || []).map((pkg) => (
             <Card key={pkg.id} className={pkg.popular ? "ring-2 ring-[#c3ff3e]" : ""}>
               <div className="flex items-start justify-between">
                 <div>

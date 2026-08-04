@@ -135,7 +135,7 @@ export function ProfileForm({ user }: { user?: User }) {
                 onChange={handleAvatarUpload} 
                 className="hidden" 
               />
-              <Button variant="secondary" as="span" disabled={loading}>
+              <Button variant="secondary" disabled={loading}>
                 {loading ? "Mengupload..." : "Upload Foto Baru"}
               </Button>
             </label>

@@ -28,7 +28,6 @@ const STORAGE_KEY = "wangstore:builder:v1";
 
 interface Props {
   formula: PriceFormula;
-  regions: Region[];
   whatsapp: string;
 }
 
@@ -182,9 +181,6 @@ export function ServerBuilder({ formula, whatsapp, tier = "pvnode" }: Props & { 
       `CPU         : ${cfg.cpu} vCore`,
       `RAM         : ${cfg.ram} GB DDR5`,
       `SSD         : ${cfg.ssd} GB`,
-      cfg.nvme ? `NVMe        : ${cfg.nvme} GB` : "",
-      cfg.hdd ? `HDD         : ${cfg.hdd} GB` : "",
-      `Bandwidth   : ${cfg.bandwidth} TB`,
       `OS          : ${cfg.os}`,
       `Software    : ${software.label}`,
       !isProxy ? `Minecraft   : ${cfg.mcVersion}` : "",
@@ -377,92 +373,6 @@ export function ServerBuilder({ formula, whatsapp, tier = "pvnode" }: Props & { 
                 ))}
               </select>
             </Field>
-            <Field label="Panel" htmlFor="panel">
-              <select
-                id="panel"
-                className="input"
-                value={cfg.panel}
-                onChange={(e) => set("panel", e.target.value as BuildConfig["panel"])}
-              >
-                {PANELS.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
-        </Card>
-
-        {/* Region */}
-        <Card>
-          <h2 className="font-[family-name:var(--font-display)] text-xl font-black">3. Region</h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            {regions
-              .filter((r) => r.enabled)
-              .map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => set("region", r.id)}
-                  aria-pressed={cfg.region === r.id}
-                  className={cn(
-                    "rounded-2xl border-[3px] border-black p-4 text-center shadow-[3px_3px_0_0_#000] transition-all hover:-translate-y-0.5",
-                    cfg.region === r.id ? "bg-gradient-to-br from-[#d946ef] to-[#7c3aed]" : "bg-[#150f28]",
-                  )}
-                >
-                  <span className="text-2xl" aria-hidden>
-                    {r.flag}
-                  </span>
-                  <span className="mt-1 block text-sm font-black">{r.name}</span>
-                  <span className="block text-[11px] text-[#cdc3ea]">{r.latencyMs} ms</span>
-                </button>
-              ))}
-          </div>
-        </Card>
-
-        {/* Add-ons */}
-        <Card>
-          <h2 className="font-[family-name:var(--font-display)] text-xl font-black">4. Add-on</h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <Toggle
-              label="Dedicated IPv4"
-              desc="Alamat IP eksklusif tanpa berbagi port."
-              price={formatIDR(formula.dedicatedIp)}
-              checked={cfg.dedicatedIp}
-              onChange={(v) => set("dedicatedIp", v)}
-            />
-            <Toggle
-              label="Automatic Backup"
-              desc="Snapshot harian terenkripsi, retensi 7 hari off-site."
-              price={formatIDR(formula.backup)}
-              checked={cfg.backup}
-              onChange={(v) => set("backup", v)}
-            />
-            <Toggle
-              label="Priority Support"
-              desc="Antrean tiket prioritas dengan SLA respons 15 menit."
-              price={formatIDR(formula.prioritySupport)}
-              checked={cfg.prioritySupport}
-              onChange={(v) => set("prioritySupport", v)}
-            />
-            <Toggle
-              label="Advanced DDoS"
-              desc="Filter L7 dan aturan khusus per game di edge."
-              price={formatIDR(formula.ddosAdvanced)}
-              checked={cfg.ddosAdvanced}
-              onChange={(v) => set("ddosAdvanced", v)}
-            />
-          </div>
-          <div className="mt-5">
-            <Slider
-              label="Port Tambahan"
-              value={cfg.extraPorts}
-              onChange={(v) => set("extraPorts", v)}
-              {...LIMITS.ports}
-              unit="port"
-              hint={`${formatIDR(formula.perExtraPort)}/port`}
-            />
           </div>
         </Card>
 

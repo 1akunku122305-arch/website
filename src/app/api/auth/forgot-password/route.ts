@@ -17,7 +17,12 @@ export async function POST(req: NextRequest) {
 
     const resetLink = `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password?token=${token}&email=${email}`;
 
-    await sendEmail(emailTemplates.resetPassword(user.name, resetLink));
+    const emailContent = emailTemplates.resetPassword(user.name, resetLink);
+    await sendEmail({ 
+      to: user.email, 
+      subject: emailContent.subject, 
+      html: emailContent.html 
+    });
 
     return ok({ message: "Reset link sent if email exists" });
   } catch (error) {

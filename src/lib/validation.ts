@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JAVA_VERSIONS, LIMITS, MC_VERSIONS, OPERATING_SYSTEMS, PANELS, SOFTWARES } from "./pricing";
+import { JAVA_VERSIONS, LIMITS, MC_VERSIONS, OPERATING_SYSTEMS, SOFTWARES } from "./pricing";
 
 /** Strips characters commonly used for HTML/script injection in stored content. */
 export function sanitizeText(input: string): string {
@@ -34,20 +34,10 @@ export const configSchema = z.object({
   cpu: z.coerce.number().min(LIMITS.cpu.min).max(LIMITS.cpu.max),
   ram: z.coerce.number().min(LIMITS.ram.min).max(LIMITS.ram.max),
   ssd: z.coerce.number().min(LIMITS.ssd.min).max(LIMITS.ssd.max),
-  nvme: z.coerce.number().min(LIMITS.nvme.min).max(LIMITS.nvme.max),
-  hdd: z.coerce.number().min(LIMITS.hdd.min).max(LIMITS.hdd.max),
-  bandwidth: z.coerce.number().min(LIMITS.bandwidth.min).max(LIMITS.bandwidth.max),
   os: z.enum(OPERATING_SYSTEMS as [string, ...string[]]),
   java: z.enum(JAVA_VERSIONS as [string, ...string[]]),
   mcVersion: z.enum(MC_VERSIONS as [string, ...string[]]),
   software: z.enum(SOFTWARES.map((s) => s.id) as [string, ...string[]]),
-  panel: z.enum(PANELS.map((p) => p.id) as [string, ...string[]]),
-  region: z.string().min(2).max(4),
-  dedicatedIp: z.boolean(),
-  extraPorts: z.coerce.number().min(LIMITS.ports.min).max(LIMITS.ports.max),
-  backup: z.boolean(),
-  prioritySupport: z.boolean(),
-  ddosAdvanced: z.boolean(),
   billingCycle: z.enum(["monthly", "quarterly", "yearly"]),
 });
 

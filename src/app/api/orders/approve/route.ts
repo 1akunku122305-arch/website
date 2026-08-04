@@ -40,7 +40,12 @@ export async function POST(req: NextRequest) {
     });
 
     // Send invoice email to customer
-    await sendEmail(emailTemplates.orderApprovedCustomer(order));
+    const approvedEmail = emailTemplates.orderApprovedCustomer(order);
+    await sendEmail({ 
+      to: order.customer.email, 
+      subject: approvedEmail.subject, 
+      html: approvedEmail.html 
+    });
 
     // Send notification to admin (optional)
     if (process.env.ADMIN_EMAIL) {

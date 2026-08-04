@@ -45,7 +45,7 @@ export function PVNodePackagesModule() {
               <div className="text-xs">/bulan</div>
             </div>
             <div className="flex items-center gap-3">
-              <Badge tone={pkg.active ? "lime" : "default"}>{pkg.active ? "Aktif" : "Nonaktif"}</Badge>
+              <Badge tone={pkg.active ? "lime" : "muted"}>{pkg.active ? "Aktif" : "Nonaktif"}</Badge>
               <Button variant="secondary" size="sm">Edit</Button>
             </div>
           </Card>

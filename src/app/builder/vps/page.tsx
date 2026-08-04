@@ -25,7 +25,6 @@ export default async function VPSBuilderPage() {
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <ServerBuilder
           formula={db.priceFormula}
-          regions={db.regions}
           whatsapp={db.settings.social.whatsapp}
           tier="vps"
         />
