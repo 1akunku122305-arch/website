@@ -11,6 +11,7 @@ export interface User {
   emailVerificationToken?: string;
   twoFactorEnabled: boolean;
   twoFactorSecret?: string;
+  avatar?: string; // path to uploaded avatar
 }
 
 export interface Region {

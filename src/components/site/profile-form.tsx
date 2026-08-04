@@ -8,6 +8,7 @@ interface User {
   email: string;
   name: string;
   whatsapp?: string;
+  avatar?: string;
 }
 
 export function ProfileForm({ user }: { user?: User }) {
@@ -15,6 +16,7 @@ export function ProfileForm({ user }: { user?: User }) {
     name: user?.name || "",
     whatsapp: user?.whatsapp || "",
   });
+  const [avatar, setAvatar] = useState(user?.avatar || "");
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -82,8 +84,66 @@ export function ProfileForm({ user }: { user?: User }) {
     }
   }
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/account/avatar", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (data.ok) {
+        setAvatar(data.data.avatar);
+        setMessage("Avatar berhasil diupload!");
+      } else {
+        setError(data.error || "Gagal upload avatar");
+      }
+    } catch {
+      setError("Gagal upload avatar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
+      {/* Avatar */}
+      <Card>
+        <h2 className="font-[family-name:var(--font-display)] text-2xl font-black mb-6">Foto Profil</h2>
+        
+        <div className="flex items-center gap-6">
+          <div className="w-24 h-24 rounded-2xl border-[3px] border-black bg-[#150f28] overflow-hidden flex items-center justify-center">
+            {avatar ? (
+              <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <div className="text-4xl text-[#6f6690]">👤</div>
+            )}
+          </div>
+          
+          <div>
+            <label className="cursor-pointer">
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleAvatarUpload} 
+                className="hidden" 
+              />
+              <Button variant="secondary" as="span" disabled={loading}>
+                {loading ? "Mengupload..." : "Upload Foto Baru"}
+              </Button>
+            </label>
+            <p className="text-xs text-[#8d83ad] mt-2">Maksimal 2MB • JPG, PNG</p>
+          </div>
+        </div>
+      </Card>
+
       {/* Profil Info */}
       <Card>
         <h2 className="font-[family-name:var(--font-display)] text-2xl font-black mb-6">Informasi Profil</h2>
