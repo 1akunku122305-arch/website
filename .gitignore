@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+build/
+dist/
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# local JSON datastore & backups
+data/*.json
+data/.dev-jwt-secret
+backups/
+
+# misc
+.DS_Store
+*.pem
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# typescript / editors
+*.tsbuildinfo
+next-env.d.ts
+.vscode/
+.idea/
+
+# testing / coverage
+coverage/
+.turbo/
+.vercel/
