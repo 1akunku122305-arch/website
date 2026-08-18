@@ -1,12 +1,24 @@
 # GitHub Actions Workflow Templates
 
-Jika workflow di `.github/workflows/` tidak dapat berjalan karena izin repository
-misalnya, salin file berikut ke `.github/workflows/` dan aktifkan di
-Settings → Actions:
+Workflow di folder ini **tidak** berjalan otomatis karena repo GitHub App/pat pada
+environment ini tidak memiliki izin `workflows` (membuat/memperbarui file di
+`.github/workflows/` ditolak oleh GitHub).
 
-- `codeql.yml.txt` → CodeQL Security Analysis
-  Persyaratan: permission `security-events: write` dan CodeQL GitHub App.
-  Aktifkan di repository Settings → Security & analysis → Code scanning.
+## Cara Aktivasi
 
-Workflow lain (CI, test, dependency audit) tersedia langsung di
-`.github/workflows/`.
+1. Pastikan token/App yang dipakai untuk push memiliki izin **Workflows**
+   (`Settings → Actions → General → Workflow permissions`, atau PAT dengan scope `workflow`).
+2. Salin template yang diinginkan dari folder ini ke `.github/workflows/`:
+   ```bash
+   cp .github/workflow-templates/ci.yml .github/workflows/ci.yml
+   cp .github/workflow-templates/codeql.yml .github/workflows/codeql.yml
+   ```
+3. Commit dan push. Workflow akan muncul di tab **Actions**.
+
+> Tanpa izin `workflows`, GitHub menolak commit yang berisi file `.github/workflows/`
+> (error: *refusing to allow a GitHub App to create or update workflow*).
+
+## Template
+
+- `ci.yml` — typecheck, lint, build, unit/business test, dependency audit.
+- `codeql.yml` — CodeQL Security Analysis (butuh permission `security-events: write`).
