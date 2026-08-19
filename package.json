@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
+    "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^2.4.3",
     "jose": "^5.9.6",
     "lucide-react": "^0.454.0",
