@@ -1,6 +1,36 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { COLLECTIONS, type CollectionItem, type CollectionName, type DataStore } from './types';
 
+// ── camelCase ↔ snake_case helpers ──────────────────────────────────────────
+
+function toSnake(str: string): string {
+  return str.replace(/([A-Z])/g, (c) => `_${c.toLowerCase()}`);
+}
+
+function toCamel(str: string): string {
+  return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+function toSnakeObj(obj: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[toSnake(k)] = v;
+  }
+  return out;
+}
+
+function toCamelObj(obj: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    out[toCamel(k)] = v;
+  }
+  return out;
+}
+
+function toCamelArr(rows: Record<string, unknown>[]): Record<string, unknown>[] {
+  return rows.map(toCamelObj);
+}
+
 /**
  * Supabase (PostgreSQL) datastore — PRODUCTION path.
  *
@@ -64,7 +94,7 @@ export class SupabaseDataStore implements DataStore {
   async list<T extends CollectionItem>(collection: CollectionName): Promise<T[]> {
     const { data, error } = await this.client.from(this.table(collection)).select('*');
     if (error) throw new Error(`Supabase list ${collection}: ${error.message}`);
-    return (data ?? []) as T[];
+    return toCamelArr((data ?? []) as Record<string, unknown>[]) as T[];
   }
 
   async get<T extends CollectionItem>(collection: CollectionName, id: string): Promise<T | null> {
@@ -74,17 +104,17 @@ export class SupabaseDataStore implements DataStore {
       .eq('id', id)
       .maybeSingle();
     if (error) throw new Error(`Supabase get ${collection}: ${error.message}`);
-    return (data as T) ?? null;
+    return data ? (toCamelObj(data as Record<string, unknown>) as T) : null;
   }
 
   async create<T extends CollectionItem>(collection: CollectionName, data: T): Promise<T> {
     const { data: row, error } = await this.client
       .from(this.table(collection))
-      .insert(data as never)
+      .insert(toSnakeObj(data as unknown as Record<string, unknown>) as never)
       .select()
       .single();
     if (error) throw new Error(`Supabase create ${collection}: ${error.message}`);
-    return row as T;
+    return toCamelObj(row as Record<string, unknown>) as T;
   }
 
   async update<T extends CollectionItem>(
@@ -94,12 +124,12 @@ export class SupabaseDataStore implements DataStore {
   ): Promise<T | null> {
     const { data: row, error } = await this.client
       .from(this.table(collection))
-      .update(data as never)
+      .update(toSnakeObj(data as unknown as Record<string, unknown>) as never)
       .eq('id', id)
       .select()
       .single();
     if (error) throw new Error(`Supabase update ${collection}: ${error.message}`);
-    return (row as T) ?? null;
+    return row ? (toCamelObj(row as Record<string, unknown>) as T) : null;
   }
 
   async delete(collection: CollectionName, id: string): Promise<boolean> {
