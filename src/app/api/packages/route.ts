@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { ok } from '@/lib/api';
 import { getDatastore } from '@/lib/db';
 import type { Package } from '@/lib/types';
