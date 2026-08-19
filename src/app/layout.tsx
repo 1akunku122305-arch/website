@@ -6,6 +6,7 @@ import { ToastProvider } from '@/components/ui/toast';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: {
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </ToastProvider>
         </ThemeProvider>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
