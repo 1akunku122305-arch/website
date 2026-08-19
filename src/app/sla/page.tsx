@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Service Level Agreement' };
 import { getLegalDoc } from '@/lib/cms/legal';
 import { LegalView } from '@/components/legal-view';

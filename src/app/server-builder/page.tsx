@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import { getSession } from '@/lib/auth/session';
 import { ServerBuilder } from './server-builder';

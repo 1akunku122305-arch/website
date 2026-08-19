@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { CmsManager, type ResourceConfig } from '../cms-manager';
 
 const config: ResourceConfig = {

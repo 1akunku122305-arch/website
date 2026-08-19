@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getDatastore } from '@/lib/db';
 import { Card, CardContent, EmptyState, Badge } from '@/components/ui/display';
 import { formatDateTime } from '@/lib/utils';

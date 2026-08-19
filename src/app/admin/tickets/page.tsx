@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getDatastore } from '@/lib/db';
 import Link from 'next/link';
 import { Card, CardContent, EmptyState, Badge } from '@/components/ui/display';

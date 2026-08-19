@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { ArrowRight, Server, ShieldCheck, Zap, CreditCard, LifeBuoy, Boxes } from 'lucide-react';
 import { getPageByKey } from '@/lib/cms/pages';

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import { getPageByKey } from '@/lib/cms/pages';
 import { CmsPageView } from '@/components/cms-page';

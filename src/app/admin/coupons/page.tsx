@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { CouponsManager } from './coupons-manager';
 
 export default function AdminCouponsPage() {

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import { MessageCircle, Mail, MessageSquare } from 'lucide-react';
 import { getSiteSettings } from '@/lib/settings';

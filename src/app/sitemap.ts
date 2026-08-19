@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { MetadataRoute } from 'next';
 import { APP_URL } from '@/lib/seo';
 import { getDatastore } from '@/lib/db';

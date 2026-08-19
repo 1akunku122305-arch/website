@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import { getDatastore } from '@/lib/db';
 import type { BlogCategory, BlogPost } from '@/lib/types';

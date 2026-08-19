@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Cpu, HardDrive, Network, MapPin, Globe, Check, Ban } from 'lucide-react';

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import type { Metadata } from 'next';
 import { getDatastore } from '@/lib/db';
 import type { Incident, MaintenanceWindow } from '@/lib/types';

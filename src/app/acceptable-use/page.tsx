@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Kebijakan Penggunaan yang Dapat Diterima' };
 import { getLegalDoc } from '@/lib/cms/legal';
 import { LegalView } from '@/components/legal-view';

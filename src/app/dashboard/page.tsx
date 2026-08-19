@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getSession } from '@/lib/auth/session';
 import { getDatastore } from '@/lib/db';
 import { StatCard, EmptyState } from '@/components/ui/display';

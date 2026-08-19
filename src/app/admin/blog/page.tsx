@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getDatastore } from '@/lib/db';
 import { CmsManager, type ResourceConfig } from '../cms-manager';
 import type { BlogCategory } from '@/lib/types';

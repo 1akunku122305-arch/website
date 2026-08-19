@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { CmsManager, type ResourceConfig } from '../cms-manager';
 
 const KB_CATEGORIES = ['Memulai', 'Pemesanan', 'Pembayaran', 'Minecraft', 'Server', 'Troubleshooting', 'Akun', 'Kebijakan'];

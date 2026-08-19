@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getDatastore } from '@/lib/db';
 import { StatCard, Card, CardContent, EmptyState } from '@/components/ui/display';
 import { formatRupiah } from '@/lib/utils';
