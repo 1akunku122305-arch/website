@@ -37,12 +37,14 @@ export function slugify(input: string): string {
     .replace(/^-|-$/g, '');
 }
 
-export function generateId(prefix = ''): string {
-  const rand =
-    typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID()
-      : Math.random().toString(36).slice(2) + Date.now().toString(36);
-  return prefix ? `${prefix}_${rand}` : rand;
+export function generateId(_prefix = ''): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+  });
 }
 
 /** Clamp a number to [min, max]. */
