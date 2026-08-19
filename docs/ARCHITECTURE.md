@@ -36,7 +36,8 @@ service:  pending / scheduled / active / suspended / expired / cancelled / termi
 ├─────────────────────────────────────────────────────┤
 │ Shared Business Modules                              │
 │   pricing/   services.ts   coupons.ts   rbac.ts      │
-│   whatsapp.ts   cms/resources.ts                     │
+│   auth/verification.ts   email.ts   whatsapp.ts      │
+│   cms/resources.ts                                   │
 ├─────────────────────────────────────────────────────┤
 │ DataStore abstraction (lib/db)                       │
 │   → Supabase (production)                            │

@@ -9,6 +9,8 @@ export interface User {
   passwordHash: string;
   role: Role;
   emailVerified: boolean;
+  /** ISO timestamp when the email address was successfully verified. */
+  emailVerifiedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,8 +24,29 @@ export interface Profile {
   company?: string;
   bio?: string;
   emailVerified: boolean;
+  emailVerifiedAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Single-use email verification token. Only the SHA-256 hash is stored. */
+export interface VerificationToken {
+  id: string;
+  userId: string;
+  tokenHash: string;
+  expiresAt: string;
+  used: boolean;
+  createdAt: string;
+}
+
+/** Single-use password reset token. Only the SHA-256 hash is stored. */
+export interface PasswordResetToken {
+  id: string;
+  userId: string;
+  tokenHash: string;
+  expiresAt: string;
+  used: boolean;
+  createdAt: string;
 }
 
 export type OrderStatus =

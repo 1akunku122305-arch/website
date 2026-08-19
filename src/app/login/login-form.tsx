@@ -29,6 +29,12 @@ export function LoginForm() {
         setError(data.message || 'Login gagal.');
         return;
       }
+      // Unverified accounts are blocked from the dashboard until verified.
+      if (data.data?.requiresVerification) {
+        router.push('/verify-email?status=unverified');
+        router.refresh();
+        return;
+      }
       const role = data.data?.user?.role;
       router.push(role === 'customer' ? '/dashboard' : '/admin');
       router.refresh();

@@ -1,31 +1,41 @@
 import { redirect } from 'next/navigation';
-import { getDatastore } from '@/lib/db';
-import { hashToken, isExpired } from '@/lib/auth/tokens';
-import { writeAudit } from '@/lib/api';
-import type { User } from '@/lib/types';
+import { readJson, ok, fail, runRequestGuard } from '@/lib/api';
+import { verifyEmailToken } from '@/lib/auth/verification';
 
 export const runtime = 'nodejs';
 
+/**
+ * Email verification.
+ *
+ * GET  `/api/auth/verify-email?token=...` — legacy/direct-link path: consumes
+ *      the token server-side and redirects to the friendly status page
+ *      (works with JavaScript disabled). Rate limited per IP.
+ *
+ * POST `/api/auth/verify-email` `{ token }` — used by /verify-email page;
+ *      returns JSON `{ status: 'success'|'already_verified'|'expired'|'invalid' }`.
+ *
+ * Both paths share `verifyEmailToken()` so behaviour is identical.
+ */
 export async function GET(request: Request) {
+  const guard = await runRequestGuard(request, { rateLimitScope: 'verify-email' });
+  if (guard.error) return guard.error;
+
   const url = new URL(request.url);
   const token = url.searchParams.get('token');
   if (!token) return redirect('/verify-email?status=invalid');
-  const tokenHash = hashToken(token);
 
-  const store = await getDatastore();
-  const records = await store.list<{ id: string; userId: string; tokenHash: string; expiresAt: string; used: boolean }>('verificationTokens');
-  const record = records.find((r) => r.tokenHash === tokenHash && !r.used);
-  if (!record || isExpired(record.expiresAt)) {
-    return redirect('/verify-email?status=invalid');
-  }
+  const { status } = await verifyEmailToken(token);
+  return redirect(`/verify-email?status=${status}`);
+}
 
-  const user = await store.get<User>('users', record.userId);
-  if (!user) return redirect('/verify-email?status=invalid');
+export async function POST(request: Request) {
+  const guard = await runRequestGuard(request, { rateLimitScope: 'verify-email' });
+  if (guard.error) return guard.error;
 
-  await store.update('verificationTokens', record.id as string, { used: true } as never);
-  await store.update('users', user.id, { emailVerified: true } as never);
-  await store.update('profiles', user.id, { emailVerified: true } as never);
-  await writeAudit({ actorId: user.id, actorRole: user.role, action: 'update', resource: 'users', resourceId: user.id, metadata: { emailVerified: true } });
+  const body = await readJson(request);
+  const token = typeof body.token === 'string' && body.token ? body.token.trim() : '';
+  if (!token) return fail('invalid_token', 'Token tidak valid.', 400);
 
-  return redirect('/verify-email?status=success');
+  const { status } = await verifyEmailToken(token);
+  return ok({ status });
 }

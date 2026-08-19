@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import type { Role } from '@/lib/types';
+import type { Role, User } from '@/lib/types';
 import { getSession, type SessionClaims } from '@/lib/auth/session';
 import { hasPermission, type Permission } from '@/lib/auth/rbac';
 import { validateCsrf } from '@/lib/security/csrf';
@@ -45,18 +45,34 @@ export function requirePermissionResponse(role: Role | null, permission: Permiss
   return null;
 }
 
-/** Run the common pipeline: payload limit, auth, CSRF, rate limit. */
+/** Run the common pipeline: payload limit, auth, verification, CSRF, rate limit. */
 export async function runRequestGuard(
   request: Request,
-  opts: { authRequired: true; csrf?: boolean; rateLimitScope?: string },
+  opts: {
+    authRequired: true;
+    /** Enforce `emailVerified` (default true when authRequired). Set false to allow unverified sessions. */
+    verified?: boolean;
+    csrf?: boolean;
+    rateLimitScope?: string;
+  },
 ): Promise<{ session: SessionClaims; error?: NextResponse; ip?: string }>;
 export async function runRequestGuard(
   request: Request,
-  opts?: { authRequired?: boolean; csrf?: boolean; rateLimitScope?: string },
+  opts?: {
+    authRequired?: boolean;
+    verified?: boolean;
+    csrf?: boolean;
+    rateLimitScope?: string;
+  },
 ): Promise<{ session: SessionClaims | null; error?: NextResponse; ip?: string }>;
 export async function runRequestGuard(
   request: Request,
-  opts: { authRequired?: boolean; csrf?: boolean; rateLimitScope?: string } = {},
+  opts: {
+    authRequired?: boolean;
+    verified?: boolean;
+    csrf?: boolean;
+    rateLimitScope?: string;
+  } = {},
 ): Promise<{ session: SessionClaims | null; error?: NextResponse; ip?: string }> {
   const ip = getClientIp(request);
 
@@ -75,7 +91,7 @@ export async function runRequestGuard(
     }
   }
 
-  // Authentication.
+  // Authentication (+ email verification gate for protected routes).
   let session: SessionClaims | null = null;
   if (opts.authRequired) {
     const auth = await getSession();
@@ -83,6 +99,21 @@ export async function runRequestGuard(
       return { session: null, error: fail('unauthorized', 'Anda harus masuk untuk melanjutkan.', 401) };
     }
     session = auth;
+    if (opts.verified !== false) {
+      const store = await getDatastore();
+      const user = await store.get<User>('users', auth.sub);
+      if (!user) {
+        return { session: null, error: fail('unauthorized', 'Akun tidak ditemukan.', 401) };
+      }
+      if (!user.emailVerified) {
+        return {
+          session: null,
+          error: fail('email_not_verified', 'Verifikasi email Anda terlebih dahulu untuk mengakses fitur ini.', 403, {
+            verifyUrl: '/verify-email?status=unverified',
+          }),
+        };
+      }
+    }
   } else {
     session = await getSession();
   }

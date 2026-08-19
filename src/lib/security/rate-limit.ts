@@ -18,6 +18,12 @@ const DEFAULT_LIMITERS: Record<string, RateLimitConfig> = {
   login: { limit: 5, windowSeconds: 300 },
   register: { limit: 5, windowSeconds: 3600 },
   'password-reset': { limit: 3, windowSeconds: 600 },
+  /** Verification token attempts (per IP) — brute-force protection. */
+  'verify-email': { limit: 20, windowSeconds: 300 },
+  /** Resend verification email (per IP). */
+  'verify-email-resend': { limit: 5, windowSeconds: 3600 },
+  /** Resend verification email (per user, daily cap — enforced in lib/auth/verification.ts). */
+  'verify-email-resend-user': { limit: 10, windowSeconds: 86400 },
   order: { limit: 20, windowSeconds: 300 },
   contact: { limit: 5, windowSeconds: 300 },
   renew: { limit: 10, windowSeconds: 300 },
@@ -80,6 +86,8 @@ export function rateLimitScopeForPathname(pathname: string): string {
   if (pathname.includes('/api/auth/login')) return 'login';
   if (pathname.includes('/api/auth/register')) return 'register';
   if (pathname.includes('/api/auth/forgot')) return 'password-reset';
+  if (pathname.includes('/api/auth/verify-email')) return 'verify-email';
+  if (pathname.includes('/api/auth/resend-verification')) return 'verify-email-resend';
   if (pathname.includes('/api/orders')) return 'order';
   if (pathname.includes('/renew')) return 'renew';
   if (pathname.includes('/api/contact')) return 'contact';

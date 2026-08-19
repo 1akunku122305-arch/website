@@ -7,7 +7,7 @@ import { getSession } from '@/lib/auth/session';
 import { getWhatsappNumber, buildOrderWhatsappMessage, whatsappLink } from '@/lib/whatsapp';
 import { TIERS } from '@/lib/pricing/tiers';
 import { getHighPackage } from '@/lib/pricing/packages';
-import type { Order, OrderItem, Coupon, CouponUsage } from '@/lib/types';
+import type { Order, OrderItem, Coupon, CouponUsage, User } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -24,6 +24,17 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const guard = await runRequestGuard(request, { rateLimitScope: 'order' });
   if (guard.error) return guard.error;
+
+  // A logged-in but unverified account must verify before placing orders.
+  // (Anonymous/guest orders remain allowed — pre-existing behaviour.)
+  const actorSession = await getSession();
+  if (actorSession) {
+    const store0 = await getDatastore();
+    const actor = await store0.get<User>('users', actorSession.sub);
+    if (actor && !actor.emailVerified) {
+      return fail('email_not_verified', 'Verifikasi email Anda terlebih dahulu untuk membuat pesanan.', 403);
+    }
+  }
 
   const body = await readJson(request);
   const parsed = orderSchema.safeParse(body);

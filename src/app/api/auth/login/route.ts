@@ -37,7 +37,12 @@ export async function POST(request: Request) {
   await setSessionCookie(session);
   await writeAudit({ actorId: user.id, actorRole: user.role, action: 'login', resource: 'auth', ip: guard.ip });
 
+  // Unverified accounts get a session so the verification page can identify
+  // them, but the dashboard/API gate keeps them out until verified.
+  const requiresVerification = !user.emailVerified;
+
   return ok({
     user: { id: user.id, email: user.email, name: user.name, role: user.role, emailVerified: user.emailVerified },
+    ...(requiresVerification ? { requiresVerification: true } : {}),
   });
 }

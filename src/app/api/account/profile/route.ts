@@ -16,6 +16,7 @@ export async function GET(request: Request) {
     name: user.name,
     email: user.email,
     emailVerified: user.emailVerified,
+    emailVerifiedAt: user.emailVerifiedAt ?? null,
     whatsapp: profile?.whatsapp ?? '',
     discord: profile?.discord ?? '',
     bio: profile?.bio ?? '',

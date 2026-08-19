@@ -45,10 +45,18 @@ TURNSTILE_SECRET_KEY=
 # WHATSAPP
 WHATSAPP_NUMBER=
 
-# EMAIL (opsional, bila provider email dipakai)
-EMAIL_PROVIDER=
-EMAIL_API_KEY=
-EMAIL_FROM=
+# EMAIL (wajib diisi agar verifikasi email berfungsi di production)
+EMAIL_PROVIDER=resend        # 'resend' atau 'smtp'; kosongkan hanya untuk development
+EMAIL_FROM=WangStore <no-reply@domain-anda.com>
+EMAIL_FROM_NAME=WangStore
+RESEND_API_KEY=              # bila EMAIL_PROVIDER=resend
+SMTP_HOST=                   # bila EMAIL_PROVIDER=smtp
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_SECURE=false
+EMAIL_VERIFY_TTL_MINUTES=60  # masa berlaku token verifikasi
+PASSWORD_RESET_TTL_MINUTES=60
 ```
 
 Jangan mengirim `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, atau secret lain ke browser.

@@ -107,6 +107,16 @@ export class SupabaseDataStore implements DataStore {
     return data ? (toCamelObj(data as Record<string, unknown>) as T) : null;
   }
 
+  async find<T extends CollectionItem>(collection: CollectionName, where: Partial<T>): Promise<T | null> {
+    let query = this.client.from(this.table(collection)).select('*');
+    for (const [k, v] of Object.entries(where)) {
+      query = query.eq(toSnake(k), v as string | number | boolean);
+    }
+    const { data, error } = await query.maybeSingle();
+    if (error) throw new Error(`Supabase find ${collection}: ${error.message}`);
+    return data ? (toCamelObj(data as Record<string, unknown>) as T) : null;
+  }
+
   async create<T extends CollectionItem>(collection: CollectionName, data: T): Promise<T> {
     const { data: row, error } = await this.client
       .from(this.table(collection))

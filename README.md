@@ -112,6 +112,7 @@ Semua variabel dijelaskan di `.env.example`. Yang wajib:
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key — **server-only, jangan ke browser** |
 | `JWT_SECRET` | Secret acak panjang (≥32 karakter) |
 | `WHATSAPP_NUMBER` | Nomor WhatsApp tujuan (format internasional) |
+| `EMAIL_PROVIDER` | `resend` atau `smtp` — wajib di production agar email verifikasi/reset terkirim (lihat `.env.example`) |
 
 Jangan pernah meng-commit `.env` / `.env.local` / service role key / JWT secret.
 

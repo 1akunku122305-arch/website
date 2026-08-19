@@ -59,6 +59,12 @@ export interface DataStore {
   list<T extends WithId>(collection: CollectionName): Promise<T[]>;
   /** Get a single record by id, or null. */
   get<T extends WithId>(collection: CollectionName, id: string): Promise<T | null>;
+  /**
+   * Find the first record matching ALL given fields (equality), or null.
+   * Backends translate this to an indexed query (e.g. `WHERE ... = ...`),
+   * avoiding full-collection scans for token lookups.
+   */
+  find<T extends WithId>(collection: CollectionName, where: Partial<T>): Promise<T | null>;
   /** Insert a record (assigns id if not present). */
   create<T extends WithId>(collection: CollectionName, data: T): Promise<T>;
   /** Replace a record by id; returns null if not found. */

@@ -17,6 +17,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = await store.get<User>('users', session.sub);
   if (!user) redirect('/login');
 
+  // Email verification gate for operator accounts too.
+  if (!user.emailVerified) {
+    redirect('/verify-email?status=unverified');
+  }
+
   return (
     <div className="container-page flex flex-col gap-6 py-8 lg:flex-row">
       <AdminSidebar role={session.role} userName={user.name} />

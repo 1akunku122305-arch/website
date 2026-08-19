@@ -3,9 +3,8 @@ import { readJson, fail, ok, writeAudit, generateId, runRequestGuard } from '@/l
 import { getDatastore } from '@/lib/db';
 import { hashPassword } from '@/lib/auth/password';
 import { signSession, setSessionCookie } from '@/lib/auth/session';
-import { generateToken, hashToken, tokenExpiresAt } from '@/lib/auth/tokens';
-import { emailConfigured, sendEmail } from '@/lib/email';
-import { absoluteUrl } from '@/lib/seo';
+import { createVerificationToken, sendVerificationEmail } from '@/lib/auth/verification';
+import { emailConfigured } from '@/lib/email';
 import type { User, Profile } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -21,13 +20,14 @@ export async function POST(request: Request) {
   }
   const data = parsed.data;
   const name = data.name;
-  const email = data.email;
+  const email = data.email.toLowerCase();
   const password = data.password;
   const whatsapp = data.whatsapp;
 
   const store = await getDatastore();
+  // Case-insensitive uniqueness — `User@Email.com` == `user@email.com`.
   const existing = (await store.list<User>('users')).find(
-    (u) => u.email.toLowerCase() === email.toLowerCase(),
+    (u) => u.email.toLowerCase() === email,
   );
   if (existing) {
     // Do not leak whether the email exists.
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
   const user: User = {
     id: userId,
-    email: email.toLowerCase(),
+    email,
     name,
     passwordHash,
     role: 'customer',
@@ -63,22 +63,10 @@ export async function POST(request: Request) {
     await tx.create('profiles', profile as never);
   });
 
-  // Email verification token.
-  const token = generateToken();
-  await store.create('verificationTokens', {
-    id: generateId('vtok'),
-    userId,
-    tokenHash: hashToken(token),
-    expiresAt: tokenExpiresAt(24 * 60),
-    used: false,
-    createdAt: now,
-  } as never);
-
-  const verifyUrl = absoluteUrl(`/api/auth/verify-email?token=${token}`);
+  // Email verification: single-use token, hashed at rest, 60-minute TTL.
+  const { token } = await createVerificationToken(store, user);
+  const { devVerifyUrl, delivered } = await sendVerificationEmail(user, token);
   const emailSvc = emailConfigured();
-  if (emailSvc) {
-    await sendEmail({ to: user.email, subject: 'Verifikasi Email WangStore', text: `Verifikasi: ${verifyUrl}` });
-  }
 
   await writeAudit({ actorId: userId, actorRole: 'customer', action: 'create', resource: 'users', resourceId: userId, ip: guard.ip });
 
@@ -87,8 +75,11 @@ export async function POST(request: Request) {
 
   return ok({
     user: { id: user.id, email: user.email, name: user.name, emailVerified: user.emailVerified },
-    emailVerification: emailSvc
-      ? { status: 'sent' }
-      : { status: 'not_configured', message: 'Layanan email belum dikonfigurasi.', devVerifyUrl: verifyUrl },
+    requiresVerification: true,
+    emailVerification: !emailSvc
+      ? { status: 'not_configured', message: 'Layanan email belum dikonfigurasi.', devVerifyUrl }
+      : delivered
+        ? { status: 'sent' }
+        : { status: 'delivery_error', message: 'Email verifikasi gagal terkirim. Anda dapat mengirim ulang dari halaman verifikasi.' },
   }, 201);
 }
