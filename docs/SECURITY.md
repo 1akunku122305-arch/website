@@ -12,7 +12,10 @@
 - Kata sandi di-hash dengan **bcrypt cost 12** (bcryptjs, edge/serverless compatible).
 - Session memakai **JWT (HS256)** via `jose`. Cookie: `HttpOnly`, `SameSite=Lax`, `Secure` di production.
 - Login **timing-resistant**: email tidak dikenal memakai dummy hash comparison; respons error generic (tidak membocorkan keberadaan email).
-- Email verification & password reset memakai opaque token; hanya SHA-256 hash yang disimpan.
+- **Email verification & password reset** memakai opaque token 256-bit (`crypto.randomBytes`); hanya **SHA-256 hash** token yang disimpan (`verification_tokens`, `password_reset_tokens`). Token **sekali pakai**, ber-TTL default 60 menit (env `EMAIL_VERIFY_TTL_MINUTES` / `PASSWORD_RESET_TTL_MINUTES`), dan tidak bisa ditebak (bukan sekuensial).
+- Akun baru dibuat dengan `email_verified=false`; verifikasi WAJIB sebelum mengakses dashboard, admin, dan API terproteksi (`403 email_not_verified`). Email dianggap aktif **hanya** setelah user berhasil membuka tautan verifikasi.
+- **Kirim ulang verifikasi** dilindungi: cooldown 60 detik per user, rate limit 5/jam per IP, dan batas harian 10 email per user. Token lama dibatalkan saat token baru diterbitkan. Respons untuk email yang tidak dikenal dibuat generik (anti-enumerasi akun).
+- `runRequestGuard({ authRequired: true })` otomatis menegakkan `emailVerified` (kecuali `verified: false`).
 
 ## 3. RBAC
 
@@ -36,7 +39,7 @@ payload limit → authentication → CSRF → Zod → sanitization → normaliza
 ## 5. Rate Limiting
 
 Sliding-window per instance (`src/lib/security/rate-limit.ts`), prioritas ketat:
-- Login (5/5 menit), Register (5/jam), Password reset (3/10 menit), Order (20/5 menit), Contact (5/5 menit), Renewal (10/5 menit).
+- Login (5/5 menit), Register (5/jam), Password reset (3/10 menit), Verifikasi email (20/5 menit per IP), Kirim ulang verifikasi (5/jam per IP, +cooldown 60s & cap harian per user), Order (20/5 menit), Contact (5/5 menit), Renewal (10/5 menit).
 
 > **Catatan:** pada environment serverless, counter bersifat per-instance (best-effort). Untuk enforcement terdistribusi multi-region, tambahkan shared limiter (mis. Supabase/Redis-compatible).
 
@@ -91,3 +94,10 @@ Mencatat login, logout, failed login, create, update, delete, pricing change, co
 ## 14. CSP Note
 
 CSP diset agar compatible dengan aplikasi. Jika memakai script inline (theme toggle), pastikan CSP mengizinkan atau nonce/`unsafe-inline` untuk inline scripts yang diketahui. Verifikasi setelah deployment.
+
+## 9. Email & Kredensial
+
+- Semua kredensial email (SMTP/API key) **hanya** dibaca dari environment variables di server; tidak pernah dikirim ke browser atau di-hard-code.
+- Provider didukung: `EMAIL_PROVIDER=resend` (REST API) atau `EMAIL_PROVIDER=smtp` (nodemailer). Tanpa provider, aplikasi **jujur** tidak mengklaim email terkirim (mode development menampilkan tautan verifikasi lokal).
+- Kegagalan SMTP/provider ditangkap dan tidak mengganggu alur utama (user dapat kirim ulang dari halaman verifikasi).
+- Token verifikasi tidak pernah ditampilkan mentah kepada user; email berisi tombol CTA + tautan alternatif.

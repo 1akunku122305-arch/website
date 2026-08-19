@@ -7,7 +7,7 @@ Semua endpoint mengembalikan format konsisten:
 { "success": false, "code": "...", "message": "..." }
 ```
 
-`code` contoh: `validation_error`, `unauthorized`, `forbidden`, `csrf_denied`, `rate_limited`, `invalid_coupon`, `invalid_package`, `tier_ongoing`, `not_found`, `invalid_transition`.
+`code` contoh: `validation_error`, `unauthorized`, `forbidden`, `email_not_verified`, `csrf_denied`, `rate_limited`, `cooldown`, `invalid_coupon`, `invalid_package`, `tier_ongoing`, `not_found`, `invalid_transition`.
 
 State-changing requests memerlukan header `x-csrf-token` (dari `/api/csrf`) dan cookie CSRF (double-submit).
 
@@ -17,13 +17,28 @@ State-changing requests memerlukan header `x-csrf-token` (dari `/api/csrf`) dan 
 
 | Method | Route | Keterangan |
 |---|---|---|
-| POST | `/api/auth/register` | Daftar (rate limited) |
-| POST | `/api/auth/login` | Login (rate limited, timing-resistant) |
+| POST | `/api/auth/register` | Daftar (rate limited). Akun dibuat `email_verified=false`; token verifikasi dikirim |
+| POST | `/api/auth/login` | Login (rate limited, timing-resistant). Akun belum terverifikasi → `requiresVerification: true` |
 | POST | `/api/auth/logout` | Logout |
 | GET | `/api/auth/me` | Data user saat ini |
-| GET | `/api/auth/verify-email?token=` | Verifikasi email (redirect) |
-| POST | `/api/auth/forgot-password` | Kirim tautan reset (rate limited) |
-| POST | `/api/auth/reset-password` | Reset kata sandi (rate limited) |
+| POST | `/api/auth/verify-email` | Verifikasi email, body `{ token }` → JSON `{ status }` |
+| GET | `/api/auth/verify-email?token=` | Verifikasi via link langsung (legacy, redirect ke halaman status) |
+| POST | `/api/auth/resend-verification` | Kirim ulang email verifikasi (cooldown 60s, rate limit per-IP & per-user) |
+| POST | `/api/auth/forgot-password` | Kirim tautan reset (rate limited, anti-enumerasi) |
+| POST | `/api/auth/reset-password` | Reset kata sandi (rate limited, token sekali pakai) |
+
+### Status verifikasi email
+
+`POST /api/auth/verify-email` dan halaman `/verify-email` mengenali status:
+
+| Status | Arti |
+|---|---|
+| `success` | ✅ Token valid, akun diaktifkan (`email_verified=true`, `email_verified_at` diisi) |
+| `already_verified` | ✅ Email sudah terverifikasi sebelumnya (token dikonsumsi) |
+| `expired` | ❌ Token melewati batas waktu (default 60 menit) |
+| `invalid` | ❌ Token tidak dikenal / sudah digunakan |
+
+Endpoint terproteksi mengembalikan `403 email_not_verified` bila session belum terverifikasi.
 
 ## Account (autentikasi)
 

@@ -24,6 +24,7 @@ create table if not exists users (
   password_hash text not null,
   role text not null default 'customer' references roles(id),
   email_verified boolean not null default false,
+  email_verified_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -39,6 +40,7 @@ create table if not exists profiles (
   company text,
   bio text,
   email_verified boolean not null default false,
+  email_verified_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -60,6 +62,43 @@ create table if not exists password_reset_tokens (
   used boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- ---------------------------------------------------------------------
+-- Email verification — upgrade path for existing deployments
+-- (idempotent; aman dijalankan ulang. Tidak menghapus data apa pun.)
+-- ---------------------------------------------------------------------
+
+-- Kolom timestamp verifikasi untuk skema lama yang belum memilikinya.
+alter table users add column if not exists email_verified_at timestamptz;
+alter table profiles add column if not exists email_verified_at timestamptz;
+
+-- Akselerasi lookup token (hash sudah unique → indeks otomatis).
+create index if not exists idx_verification_tokens_user on verification_tokens (user_id);
+create index if not exists idx_password_reset_tokens_user on password_reset_tokens (user_id);
+
+-- Backfill AMAN untuk akun lama:
+--  - Role internal (owner/admin/staff) dianggap terverifikasi (operator
+--    terpercaya) sehingga akses admin tidak terputus.
+--  - Customer lama TIDAK di-backfill: mereka wajib memverifikasi email saat
+--    login berikutnya (fitur kirim ulang tersedia). Data akun tidak diubah.
+update users
+   set email_verified = true,
+       email_verified_at = coalesce(email_verified_at, updated_at)
+ where role in ('owner','admin','staff')
+   and email_verified = false;
+
+update profiles p
+   set email_verified = true,
+       email_verified_at = coalesce(p.email_verified_at, p.updated_at)
+  from users u
+ where u.id = p.user_id
+   and u.role in ('owner','admin','staff')
+   and p.email_verified = false;
+
+-- Token verifikasi kedaluwarsa/terpakai tidak pernah dipakai lagi; baris
+-- lama boleh dibersihkan agar tabel tetap ramping.
+delete from verification_tokens where expires_at < now() - interval '7 days';
+delete from password_reset_tokens where expires_at < now() - interval '7 days';
 
 -- ---------------------------------------------------------------------
 -- Catalog: products, packages, pricing

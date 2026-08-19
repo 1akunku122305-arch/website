@@ -120,6 +120,14 @@ export class JsonDataStore implements DataStore {
     return found ? ({ ...found } as T) : null;
   }
 
+  async find<T extends CollectionItem>(collection: CollectionName, where: Partial<T>): Promise<T | null> {
+    const items = await this.load(collection);
+    const found = items.find((i) =>
+      Object.entries(where).every(([k, v]) => i[k] === v),
+    );
+    return found ? ({ ...found } as T) : null;
+  }
+
   async create<T extends CollectionItem>(collection: CollectionName, data: T): Promise<T> {
     const items = await this.load(collection);
     const record = { ...data };

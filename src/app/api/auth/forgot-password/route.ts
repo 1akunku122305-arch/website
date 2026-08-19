@@ -1,10 +1,10 @@
 import { forgotPasswordSchema } from '@/lib/validation/schemas';
-import { readJson, fail, ok, runRequestGuard } from '@/lib/api';
+import { readJson, fail, ok, runRequestGuard, generateId } from '@/lib/api';
 import { getDatastore } from '@/lib/db';
-import { generateToken, hashToken, tokenExpiresAt } from '@/lib/auth/tokens';
-import { emailConfigured, sendEmail } from '@/lib/email';
+import { PASSWORD_RESET_TTL_MINUTES, generateToken, hashToken, tokenExpiresAt } from '@/lib/auth/tokens';
+import { emailConfigured, sendEmail, renderPasswordResetEmail } from '@/lib/email';
 import { absoluteUrl } from '@/lib/seo';
-import type { User } from '@/lib/types';
+import type { PasswordResetToken, User } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -22,18 +22,39 @@ export async function POST(request: Request) {
 
   // Always respond generically to avoid leaking account existence.
   if (user) {
+    // Invalidate previously unused reset tokens for this account so only the
+    // latest link works (single-use, replay protection).
+    const existing = await store.list<PasswordResetToken>('passwordResetTokens');
+    for (const old of existing.filter((t) => t.userId === user.id && !t.used)) {
+      await store.update('passwordResetTokens', old.id, { used: true } as never);
+    }
+
     const token = generateToken();
     await store.create('passwordResetTokens', {
-      id: 'preset_' + Math.random().toString(36).slice(2),
+      id: generateId('preset'),
       userId: user.id,
       tokenHash: hashToken(token),
-      expiresAt: tokenExpiresAt(60),
+      expiresAt: tokenExpiresAt(PASSWORD_RESET_TTL_MINUTES),
       used: false,
       createdAt: new Date().toISOString(),
     } as never);
+
     if (emailConfigured()) {
-      await sendEmail({ to: user.email, subject: 'Reset Kata Sandi WangStore', text: `Reset: ${absoluteUrl(`/reset-password?token=${token}`)}` });
+      const resetUrl = absoluteUrl(`/reset-password?token=${token}`);
+      const { subject, html, text } = renderPasswordResetEmail({
+        userName: user.name,
+        resetUrl,
+        ttlMinutes: PASSWORD_RESET_TTL_MINUTES,
+      });
+      await sendEmail({ to: user.email, subject, text, html });
+      return ok({ message: 'Jika email terdaftar, instruksi reset kata sandi akan dikirim.' });
     }
+    // Development fallback (email belum dikonfigurasi): kembalikan tautan reset
+    // agar alur tetap bisa diuji. Hanya muncul bila provider tidak dikonfigurasi.
+    return ok({
+      message: 'Jika email terdaftar, instruksi reset kata sandi akan dikirim.',
+      devResetUrl: absoluteUrl(`/reset-password?token=${token}`),
+    });
   }
 
   return ok({ message: 'Jika email terdaftar, instruksi reset kata sandi akan dikirim.' });

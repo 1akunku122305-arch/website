@@ -35,7 +35,9 @@ export function RegisterForm() {
         setError(null);
         return;
       }
-      router.push('/dashboard');
+      // Account created as unverified → send the user to the verification page.
+      // cooldown=60 memulai countdown kirim ulang (email baru saja dikirim).
+      router.push('/verify-email?status=check-inbox&cooldown=60');
       router.refresh();
     } catch {
       setError('Terjadi kesalahan jaringan. Silakan coba lagi.');

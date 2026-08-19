@@ -11,6 +11,7 @@ interface Profile {
   name: string;
   email: string;
   emailVerified: boolean;
+  emailVerifiedAt?: string | null;
   whatsapp: string;
   discord: string;
   bio: string;
@@ -23,6 +24,7 @@ export default function ProfilePage() {
   const [pw, setPw] = useState({ currentPassword: '', newPassword: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resendState, setResendState] = useState<{ loading: boolean; message?: string; error?: string }>({ loading: false });
 
   async function load() {
     try {
@@ -33,6 +35,27 @@ export default function ProfilePage() {
       setForm({ name: data.data.name, whatsapp: data.data.whatsapp, discord: data.data.discord, bio: data.data.bio });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Terjadi kesalahan.');
+    }
+  }
+
+  async function resendVerification(e: React.FormEvent) {
+    e.preventDefault();
+    if (!profile) return;
+    setResendState({ loading: true });
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': await getOrCreateCsrfToken() },
+        body: JSON.stringify({ email: profile.email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setResendState({ loading: false, error: data.message || 'Gagal mengirim ulang email verifikasi.' });
+        return;
+      }
+      setResendState({ loading: false, message: 'Email verifikasi telah dikirim. Periksa kotak masuk Anda.' });
+    } catch {
+      setResendState({ loading: false, error: 'Terjadi kesalahan jaringan.' });
     }
   }
 
@@ -88,10 +111,38 @@ export default function ProfilePage() {
       <h1 className="text-2xl font-bold">Profil</h1>
       <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
         {profile.email} ·{' '}
-        {profile.emailVerified ? <Badge variant="success">Email terverifikasi</Badge> : <Badge variant="warning">Belum verifikasi</Badge>}
+        {profile.emailVerified ? <Badge variant="success">Email terverifikasi ✓</Badge> : <Badge variant="warning">Belum terverifikasi</Badge>}
       </p>
 
       {error && <Alert variant="error" className="mt-4">{error}</Alert>}
+
+      {!profile.emailVerified && (
+        <Card className="mt-6">
+          <CardContent>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-semibold">Status Email</h2>
+                <p className="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">
+                  Email: {profile.email} · Status: Belum Terverifikasi
+                </p>
+              </div>
+              <form onSubmit={resendVerification} className="flex items-center gap-3">
+                {resendState.message && <Alert variant="success" className="!mb-0">{resendState.message}</Alert>}
+                {resendState.error && <Alert variant="error" className="!mb-0">{resendState.error}</Alert>}
+                <Button type="submit" variant="secondary" loading={resendState.loading}>
+                  Kirim Email Verifikasi
+                </Button>
+              </form>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {profile.emailVerified && (
+        <p className="mt-3 text-xs text-neutral-400 dark:text-neutral-500">
+          Email terverifikasi{profile.emailVerifiedAt ? ` pada ${new Date(profile.emailVerifiedAt).toLocaleString('id-ID')}` : ''}.
+        </p>
+      )}
 
       <Card className="mt-6">
         <CardContent>

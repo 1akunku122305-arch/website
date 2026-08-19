@@ -37,6 +37,19 @@ Dokumen ini mencatat secara jujur apa yang sudah diverifikasi dan apa yang belum
 | Service creation via order konfirmasi (paid) → status active | ✓ |
 | Customer hanya akses layanan miliknya (cross-customer → 403) | ✓ |
 | Rate limiting login aktif (429 setelah batas) | ✓ |
+| **Email verification: register → `email_verified=false`** | ✓ |
+| **Email verification: token sekali pakai (reuse → invalid)** | ✓ |
+| **Email verification: token kedaluwarsa → `expired`, akun tetap terkunci** | ✓ |
+| **Email verification: akun sudah terverifikasi → `already_verified`** | ✓ |
+| **Email verification: dashboard & API terproteksi diblokir sebelum verifikasi (`403 email_not_verified` / redirect)** | ✓ |
+| **Email verification: verifikasi berhasil → akun aktif, dashboard 200** | ✓ |
+| **Email verification: kirim ulang — cooldown 60s (429 + retryAfterSeconds)** | ✓ |
+| **Email verification: kirim ulang — batas harian & per-IP (unit test)** | ✓ |
+| **Email verification: anti-enumerasi (email tak dikenal → respons generik)** | ✓ |
+| **Email verification: registrasi email duplikat case-insensitive → 400** | ✓ |
+| **Password reset: token sekali pakai + login password baru/lama (end-to-end)** | ✓ |
+| **Email template verifikasi/reset (CTA, tautan alternatif, TTL, catatan abaikan, escaping HTML)** | ✓ |
+| **Backfill akun lama: staff/admin → terverifikasi, customer tetap diverifikasi saat login** | ✓ |
 
 ## Belum Diverifikasi di Environment Ini (Perlu Akses Live)
 
@@ -45,7 +58,7 @@ Berikut **tidak** diverifikasi karena memerlukan project Supabase/Vercel live:
 - Koneksi **Supabase** live (PostgreSQL, RLS, Auth).
 - `database/schema.sql` dieksekusi pada Supabase SQL Editor.
 - Deployment **Vercel** (build di environment Vercel, custom domain, env production).
-- Email delivery (provider email belum dikonfigurasi; fallback menampilkan tautan verifikasi development).
+- Email delivery **live** (provider email belum dikonfigurasi di environment ini; fallback development menampilkan tautan verifikasi/reset lokal dan seluruh alur sudah diverifikasi end-to-end tanpa provider).
 - Payment gateway (belum ada provider; order berstatus `awaiting_payment` dan dikonfirmasi manual oleh admin).
 - WhatsApp delivery (URL `wa.me` dibuat dari `WHATSAPP_NUMBER`; pengiriman aktual tergantung WhatsApp).
 - Reminder terkirim otomatis (scheduler serverless perlu dikonfigurasi; idempotency didukung oleh unique constraint).

@@ -13,6 +13,7 @@
     "test:pricing": "vitest run tests/pricing",
     "test:business": "vitest run tests/business",
     "db:seed": "tsx scripts/seed.ts",
+    "backfill:email-verification": "tsx scripts/backfill-email-verification.ts",
     "smoke": "tsx scripts/smoke-test.ts"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "lucide-react": "^0.454.0",
     "marked": "^15.0.4",
     "next": "14.2.35",
+    "nodemailer": "^9.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^3.23.8"
@@ -30,6 +32,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.16.11",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",

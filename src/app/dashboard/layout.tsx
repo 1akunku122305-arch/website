@@ -14,6 +14,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const user = await store.get<User>('users', session.sub);
   if (!user) redirect('/login');
 
+  // Email verification gate: unverified customers cannot access main features.
+  if (user.role === 'customer' && !user.emailVerified) {
+    redirect('/verify-email?status=unverified');
+  }
+
   return (
     <div className="container-page flex flex-col gap-6 py-8 lg:flex-row">
       <DashboardSidebar user={{ name: user.name, email: user.email }} />
